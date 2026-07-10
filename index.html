@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Daily System">
+<meta name="theme-color" content="#FBF1F5">
+<title>My Daily System 🌸</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Karla:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --blush-bg: #FBF1F5;
+  --blush-bg-2: #F7E4ED;
+  --white: #FFFFFF;
+  --rose: #E0759D;
+  --rose-dark: #C24E7E;
+  --rose-light: #F6D6E4;
+  --plum: #472439;
+  --plum-soft: #7A5468;
+  --gold: #D9A55E;
+  --gold-light: #F3DFBB;
+  --sage: #8FAE8B;
+  --sage-light: #DCE9DA;
+  --red-soft: #D97373;
+  --line: #F1D9E4;
+  --shadow: 0 10px 30px -12px rgba(194, 78, 126, 0.25);
+  --radius: 18px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{
+  font-family: 'Karla', sans-serif;
+  background: linear-gradient(160deg, var(--blush-bg) 0%, var(--blush-bg-2) 100%);
+  color: var(--plum);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+h1,h2,h3,.display{
+  font-family: 'Fraunces', serif;
+}
+.hidden{display:none !important;}
+button{font-family:inherit; cursor:pointer; border:none;}
+input, select{font-family:inherit;}
+
+/* ---------- GREETING SCREEN ---------- */
+#greetScreen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: 24px;
+  position:relative;
+  overflow:hidden;
+}
+#greetScreen::before, #greetScreen::after{
+  content:'';
+  position:absolute;
+  border-radius:50%;
+  filter: blur(60px);
+  opacity:0.5;
+}
+#greetScreen::before{
+  width:340px;height:340px;
+  background: var(--rose-light);
+  top:-100px; left:-100px;
+}
+#greetScreen::after{
+  width:300px;height:300px;
+  background: var(--gold-light);
+  bottom:-100px; right:-80px;
+}
+.greet-card{
+  position:relative;
+  z-index:2;
+  background: var(--white);
+  border-radius: 28px;
+  padding: 56px 48px;
+  max-width: 480px;
+  width:100%;
+  text-align:center;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--line);
+}
+.greet-emoji{font-size:44px; margin-bottom:6px;}
+.greet-date{
+  font-size:13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--plum-soft);
+  margin-bottom: 18px;
+  font-weight:600;
+}
+.greet-title{
+  font-size: 30px;
+  font-weight:600;
+  color: var(--plum);
+  margin-bottom: 6px;
+}
+.greet-title span{color: var(--rose-dark);}
+.greet-sub{
+  font-size:14px;
+  color: var(--plum-soft);
+  margin-bottom: 26px;
+}
+.quote-box{
+  background: var(--blush-bg);
+  border-left: 3px solid var(--rose);
+  border-radius: 12px;
+  padding: 18px 20px;
+  font-family:'Fraunces', serif;
+  font-style: italic;
+  font-size: 16.5px;
+  color: var(--plum);
+  margin-bottom: 28px;
+  line-height:1.5;
+}
+.name-input-wrap{margin-bottom:20px; text-align:left;}
+.name-input-wrap label{
+  font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:1px;
+  color: var(--plum-soft); display:block; margin-bottom:8px;
+}
+.name-input-wrap input{
+  width:100%; padding: 13px 16px; border-radius: 12px;
+  border: 1.5px solid var(--line); font-size:15px; outline:none;
+  transition: border-color .15s;
+}
+.name-input-wrap input:focus{border-color: var(--rose);}
+.btn-primary{
+  background: linear-gradient(135deg, var(--rose), var(--rose-dark));
+  color:#fff; padding: 15px 26px; border-radius: 14px;
+  font-weight:700; font-size:15px; width:100%;
+  box-shadow: 0 8px 20px -6px rgba(194,78,126,0.55);
+  transition: transform .15s, box-shadow .15s;
+}
+.btn-primary:hover{transform: translateY(-2px); box-shadow: 0 12px 24px -6px rgba(194,78,126,0.6);}
+
+/* ---------- MAIN APP LAYOUT ---------- */
+#mainScreen{
+  display:flex;
+  min-height:100vh;
+}
+.sidebar{
+  width: 230px;
+  background: var(--white);
+  border-right: 1px solid var(--line);
+  padding: 28px 18px;
+  display:flex;
+  flex-direction:column;
+  position:sticky;
+  top:0;
+  height:100vh;
+}
+.sidebar-logo{
+  font-family:'Fraunces', serif;
+  font-weight:600;
+  font-size:19px;
+  color: var(--rose-dark);
+  margin-bottom: 34px;
+  padding-left: 6px;
+}
+.nav-btn{
+  display:flex; align-items:center; gap:10px;
+  width:100%; text-align:left;
+  background:transparent;
+  color: var(--plum-soft);
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size:14.5px;
+  font-weight:600;
+  margin-bottom:4px;
+  transition: background .15s, color .15s;
+}
+.nav-btn:hover{background: var(--blush-bg);}
+.nav-btn.active{
+  background: linear-gradient(135deg, var(--rose-light), var(--gold-light));
+  color: var(--rose-dark);
+}
+.sidebar-foot{
+  margin-top:auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.notif-btn{
+  width:100%;
+  background: var(--blush-bg);
+  color: var(--plum);
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size:13px;
+  font-weight:600;
+  display:flex; align-items:center; gap:8px;
+}
+.notif-btn.on{background: var(--sage-light); color:#3d5c3a;}
+
+.content{
+  flex:1;
+  padding: 34px 40px 60px;
+  max-width: 1080px;
+}
+.page{display:none;}
+.page.active{display:block; animation: fadein .25s ease;}
+@keyframes fadein{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.page-head{
+  display:flex; justify-content:space-between; align-items:flex-end;
+  margin-bottom: 26px; flex-wrap:wrap; gap:10px;
+}
+.page-title{font-size: 26px; font-weight:600;}
+.page-sub{color:var(--plum-soft); font-size:13.5px; margin-top:4px;}
+
+.card{
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  padding: 22px;
+  box-shadow: 0 6px 20px -14px rgba(71,36,57,0.15);
+}
+.grid-2{display:grid; grid-template-columns: 1.1fr 1.4fr; gap:22px;}
+.section-title{
+  font-family:'Fraunces', serif;
+  font-size:17px; font-weight:600; margin-bottom:14px;
+  display:flex; align-items:center; gap:8px;
+}
+
+/* form elements */
+.field{margin-bottom:14px;}
+.field label{
+  display:block; font-size:11.5px; font-weight:700; text-transform:uppercase;
+  letter-spacing: .6px; color: var(--plum-soft); margin-bottom:6px;
+}
+.field input, .field select{
+  width:100%; padding: 10px 12px; border-radius:10px;
+  border: 1.5px solid var(--line); font-size:14px; outline:none; background:#fff;
+}
+.field input:focus, .field select:focus{border-color:var(--rose);}
+.field-row{display:flex; gap:10px;}
+.field-row > *{flex:1;}
+.chip-row{display:flex; flex-wrap:wrap; gap:6px;}
+.chip{
+  padding: 7px 12px; border-radius:20px; border:1.5px solid var(--line);
+  font-size:12.5px; font-weight:600; color:var(--plum-soft); background:#fff;
+}
+.chip.selected{background: var(--rose); border-color:var(--rose); color:#fff;}
+.btn-sm{
+  padding: 10px 16px; border-radius:10px; font-weight:700; font-size:13.5px;
+  background: var(--rose); color:#fff;
+}
+.btn-sm:hover{background:var(--rose-dark);}
+.btn-outline{
+  background:#fff; border:1.5px solid var(--line); color:var(--plum-soft);
+  padding:8px 14px; border-radius:10px; font-size:12.5px; font-weight:700;
+}
+.btn-outline:hover{border-color:var(--rose); color:var(--rose-dark);}
+.btn-danger{background:transparent; color:var(--red-soft); font-size:12px; font-weight:700;}
+
+/* habit / prayer cards */
+.item-list{display:flex; flex-direction:column; gap:12px; margin-top: 4px;}
+.habit-card{
+  background:#fff; border:1.5px solid var(--line); border-radius:14px;
+  padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+  transition: border-color .15s;
+}
+.habit-card.due-now{border-color: var(--gold);}
+.habit-card.done-today{background: var(--sage-light); border-color: var(--sage);}
+.habit-main{display:flex; flex-direction:column; gap:3px;}
+.habit-name{font-weight:700; font-size:15px; display:flex; align-items:center; gap:8px;}
+.habit-meta{font-size:12px; color: var(--plum-soft);}
+.streak-badge{
+  font-size:11.5px; font-weight:700; color:var(--gold); background:var(--gold-light);
+  padding:3px 9px; border-radius:20px; white-space:nowrap;
+}
+.miss-badge{
+  font-size:11px; font-weight:700; color:var(--red-soft); background:#FBE4E4;
+  padding:3px 9px; border-radius:20px;
+}
+.habit-actions{display:flex; align-items:center; gap:8px;}
+.check-btn{
+  width:38px; height:38px; border-radius:50%; background:var(--blush-bg);
+  border: 1.5px solid var(--line); font-size:17px; display:flex; align-items:center; justify-content:center;
+}
+.check-btn.checked{background: var(--sage); border-color: var(--sage); color:#fff;}
+
+.empty-state{
+  text-align:center; padding: 30px 10px; color: var(--plum-soft); font-size:13.5px;
+}
+
+/* prayer section */
+.prayer-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;}
+.prayer-card{
+  background:#fff; border:1.5px solid var(--line); border-radius:16px;
+  padding:16px; text-align:center; transition:.15s;
+}
+.prayer-card.done{background: linear-gradient(160deg, var(--sage-light), #fff); border-color: var(--sage);}
+.prayer-emoji{font-size:26px; margin-bottom:6px;}
+.prayer-name{font-family:'Fraunces',serif; font-weight:600; font-size:15.5px;}
+.prayer-time{font-size:12px; color:var(--plum-soft); margin: 4px 0 10px;}
+.prayer-time input{
+  border:none; background:transparent; text-align:center; font-size:12px;
+  color:var(--plum-soft); width:100%; cursor:pointer;
+}
+.prayer-check{
+  width:100%; padding:9px; border-radius:10px; font-weight:700; font-size:12.5px;
+  background: var(--blush-bg); color:var(--plum-soft); border:1.5px solid var(--line);
+}
+.prayer-check.done{background:var(--sage); border-color:var(--sage); color:#fff;}
+.prayer-progress-wrap{margin-top:18px;}
+.bar-track{background:var(--blush-bg); border-radius:20px; height:10px; overflow:hidden;}
+.bar-fill{height:100%; background:linear-gradient(90deg,var(--gold),var(--rose)); border-radius:20px; transition: width .3s;}
+
+/* stat pills */
+.stat-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px; margin-bottom:22px;}
+.stat-pill{
+  background:#fff; border:1.5px solid var(--line); border-radius:16px; padding:16px 18px;
+}
+.stat-pill .num{font-family:'Fraunces',serif; font-size:24px; font-weight:600;}
+.stat-pill .lbl{font-size:11.5px; color:var(--plum-soft); text-transform:uppercase; letter-spacing:.5px; font-weight:700; margin-top:2px;}
+.stat-pill.income .num{color:var(--sage);}
+.stat-pill.expense .num{color:var(--red-soft);}
+.stat-pill.remain .num{color:var(--rose-dark);}
+.balance-card{background: linear-gradient(135deg, var(--rose-light), var(--gold-light));}
+.balance-num{font-family:'Fraunces', serif; font-size:38px; font-weight:700; color:var(--plum); margin: 4px 0 2px;}
+.balance-num.negative{color:var(--red-soft);}
+.balance-sub{font-size:12.5px; color:var(--plum-soft); font-weight:600;}
+.avail-note{font-size:12.5px; font-weight:700; color:var(--sage); background:var(--sage-light); padding:8px 12px; border-radius:10px; text-align:center;}
+.avail-note.tight{color:#9c7327; background:var(--gold-light);}
+.avail-note.over{color:var(--red-soft); background:#FBE4E4;}
+.sav-goal{background:#fff; border:1.5px solid var(--line); border-radius:14px; padding:14px 16px; margin-bottom:12px;}
+.sav-goal-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+.sav-goal-name{font-weight:700; font-size:14.5px;}
+.sav-goal-amt{font-size:12.5px; color:var(--plum-soft);}
+.sav-bar-track{background:var(--blush-bg); border-radius:20px; height:8px; overflow:hidden; margin-bottom:10px;}
+.sav-bar-fill{height:100%; border-radius:20px; background:linear-gradient(90deg,var(--sage),#6f9a6b); transition:width .3s;}
+.sav-actions{display:flex; gap:8px; align-items:center;}
+.sav-actions input{width:90px; padding:8px 10px; border-radius:9px; border:1.5px solid var(--line); font-size:13px;}
+.sav-mini-btn{padding:8px 12px; border-radius:9px; font-size:12px; font-weight:700;}
+.sav-deposit{background:var(--sage); color:#fff;}
+.sav-withdraw{background:var(--blush-bg); color:var(--plum-soft); border:1.5px solid var(--line);}
+
+/* finance */
+.cat-block{padding:12px 0; border-bottom:1px dashed var(--line);}
+.cat-block:last-child{border-bottom:none;}
+.cat-row{display:flex; align-items:center; justify-content:space-between; font-size:13.5px; margin-bottom:8px;}
+.cat-tag{font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; text-transform:uppercase; letter-spacing:.4px;}
+.tag-need{background:#FBE4E4; color:var(--red-soft);}
+.tag-want{background:var(--gold-light); color:#9c7327;}
+.tag-saving{background:var(--sage-light); color:#3d5c3a;}
+.cat-sub{font-size:11.5px; color:var(--plum-soft); margin-bottom:6px; display:flex; justify-content:space-between;}
+.cat-bar-track{background:var(--blush-bg); border-radius:20px; height:8px; overflow:hidden;}
+.cat-bar-fill{height:100%; border-radius:20px; transition: width .3s;}
+.cat-note{margin-top:7px; font-size:12px; font-weight:700; padding:6px 10px; border-radius:9px; display:inline-block;}
+.cat-note.warn{background:#FBE4E4; color:var(--red-soft);}
+.cat-note.caution{background:var(--gold-light); color:#9c7327;}
+.tx-row{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--blush-bg); font-size:13.5px;}
+.tx-left{display:flex; flex-direction:column;}
+.tx-cat{font-size:11.5px; color:var(--plum-soft);}
+.tx-amt.income{color:var(--sage); font-weight:700;}
+.tx-amt.expense{color:var(--red-soft); font-weight:700;}
+.pie-wrap{display:flex; align-items:center; gap:22px; flex-wrap:wrap; justify-content:center;}
+.legend{display:flex; flex-direction:column; gap:10px;}
+.legend-item{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600;}
+.legend-dot{width:11px; height:11px; border-radius:50%;}
+
+/* today's bloom (home) */
+.bloom-wrap{display:flex; align-items:center; gap:28px; flex-wrap:wrap;}
+.bloom-ring-label{text-align:center;}
+.bloom-num{font-family:'Fraunces',serif; font-size:30px; font-weight:600; color:var(--rose-dark);}
+.today-list{display:flex; flex-direction:column; gap:8px; flex:1; min-width:220px;}
+.today-item{display:flex; align-items:center; gap:8px; font-size:13.5px; padding:8px 10px; background:var(--blush-bg); border-radius:10px;}
+.today-item.ok{opacity:.55; text-decoration:line-through;}
+
+@media (max-width: 800px){
+  #mainScreen{flex-direction:column;}
+  .sidebar{
+    width:100%; height:auto; position:sticky; top:0; z-index:10;
+    flex-direction:row; align-items:center; padding: 12px 14px; overflow-x:auto;
+  }
+  .sidebar-logo{display:none;}
+  .nav-btn{white-space:nowrap; margin-bottom:0;}
+  .sidebar-foot{margin-top:0; margin-left:auto; border-top:none; padding-top:0;}
+  .content{padding: 22px 16px 50px;}
+  .grid-2{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ============ GREETING SCREEN ============ -->
+  <div id="greetScreen" class="screen">
+    <div class="greet-card">
+      <div class="greet-emoji">🌸</div>
+      <div class="greet-date" id="greetDate">—</div>
+      <div id="nameEntry">
+        <div class="greet-title">Welcome 👋</div>
+        <div class="greet-sub">Let's set up your space before we begin.</div>
+        <div class="name-input-wrap">
+          <label>What's your name?</label>
+          <input type="text" id="nameInput" placeholder="e.g. Amina">
+        </div>
+        <button class="btn-primary" id="saveNameBtn">Create My System 🌷</button>
+      </div>
+      <div id="returningEntry" class="hidden">
+        <div class="greet-title">Assalamu Alaikum, <span id="greetName">there</span> 🌸</div>
+        <div class="greet-sub" id="greetSub">Here's a little something to start your day.</div>
+        <div class="quote-box" id="quoteBox">Loading your quote…</div>
+        <button class="btn-primary" id="enterBtn">Begin My Day →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MAIN SCREEN ============ -->
+  <div id="mainScreen" class="screen hidden">
+    <nav class="sidebar">
+      <div class="sidebar-logo">🌸 My Daily System</div>
+      <button class="nav-btn active" data-page="home">🏠 Home</button>
+      <button class="nav-btn" data-page="habits">✅ Habits</button>
+      <button class="nav-btn" data-page="prayers">🕌 Prayers</button>
+      <button class="nav-btn" data-page="finance">💰 Finance</button>
+      <div class="sidebar-foot">
+        <button class="notif-btn" id="notifBtn">🔔 Enable Reminders</button>
+      </div>
+    </nav>
+
+    <div class="content">
+
+      <!-- HOME -->
+      <div class="page active" id="page-home">
+        <div class="page-head">
+          <div>
+            <div class="page-title">Good day, <span id="homeName" style="color:var(--rose-dark)">there</span> 🌷</div>
+            <div class="page-sub" id="homeDate">—</div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:22px;">
+          <div class="section-title">🌼 Today's Bloom</div>
+          <div class="bloom-wrap">
+            <svg width="130" height="130" viewBox="0 0 130 130">
+              <circle cx="65" cy="65" r="54" fill="none" stroke="#F3D6E4" stroke-width="14"/>
+              <circle id="bloomRing" cx="65" cy="65" r="54" fill="none" stroke="url(#bloomGrad)" stroke-width="14"
+                stroke-linecap="round" stroke-dasharray="339" stroke-dashoffset="339"
+                transform="rotate(-90 65 65)"/>
+              <defs>
+                <linearGradient id="bloomGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#D9A55E"/>
+                  <stop offset="100%" stop-color="#C24E7E"/>
+                </linearGradient>
+              </defs>
+              <text x="65" y="60" text-anchor="middle" font-family="Fraunces, serif" font-size="24" font-weight="600" fill="#472439" id="bloomPct">0%</text>
+              <text x="65" y="78" text-anchor="middle" font-family="Karla, sans-serif" font-size="10" fill="#7A5468">complete</text>
+            </svg>
+            <div class="today-list" id="todayList"></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-title">✅ Habits Today</div>
+            <div id="homeHabitSummary" class="item-list"></div>
+          </div>
+          <div class="card">
+            <div class="section-title">🕌 Prayers Today</div>
+            <div id="homePrayerSummary" class="item-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HABITS -->
+      <div class="page" id="page-habits">
+        <div class="page-head">
+          <div>
+            <div class="page-title">✅ Habits</div>
+            <div class="page-sub">Build your routine, one day at a time.</div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-title">➕ Add a Habit</div>
+            <div class="field">
+              <label>Habit name</label>
+              <input type="text" id="habitName" placeholder="e.g. Read 10 pages">
+            </div>
+            <div class="field">
+              <label>Frequency</label>
+              <select id="habitFreq">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly (choose days)</option>
+              </select>
+            </div>
+            <div class="field hidden" id="habitDaysField">
+              <label>Days</label>
+              <div class="chip-row" id="habitDaysChips"></div>
+            </div>
+            <div class="field">
+              <label>Time</label>
+              <input type="time" id="habitTime" value="08:00">
+            </div>
+            <button class="btn-sm" id="addHabitBtn" style="width:100%;">Add Habit</button>
+          </div>
+          <div class="card">
+            <div class="section-title">📋 Your Habits</div>
+            <div class="item-list" id="habitList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRAYERS -->
+      <div class="page" id="page-prayers">
+        <div class="page-head">
+          <div>
+            <div class="page-title">🕌 Prayers</div>
+            <div class="page-sub">Tap a prayer's time to edit it. Tap the card once you've prayed.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="prayer-grid" id="prayerGrid"></div>
+          <div class="prayer-progress-wrap">
+            <div style="display:flex; justify-content:space-between; font-size:12.5px; color:var(--plum-soft); margin-bottom:6px;">
+              <span id="prayerProgressLabel">0 / 5 prayed today</span>
+              <span id="prayerProgressPct">0%</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" id="prayerBar" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FINANCE -->
+      <div class="page" id="page-finance">
+        <div class="page-head">
+          <div>
+            <div class="page-title">💰 Finance</div>
+            <div class="page-sub">Plan your month, watch every riyal, dollar or pound.</div>
+          </div>
+        </div>
+
+        <div class="card balance-card" style="margin-bottom:18px;">
+          <div class="section-title">💵 Real Money Left</div>
+          <div class="balance-num" id="statBalance">0</div>
+          <div class="balance-sub" id="statBalanceSub">Received minus spent, across everything.</div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-pill income"><div class="num" id="statIncome">0</div><div class="lbl">Received</div></div>
+          <div class="stat-pill expense"><div class="num" id="statExpense">0</div><div class="lbl">Spent</div></div>
+          <div class="stat-pill remain"><div class="num" id="statRemain">0</div><div class="lbl">Planned Budget Left</div></div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom:22px;">
+          <div class="card">
+            <div class="section-title">🎯 Monthly Budget Categories</div>
+            <div class="field">
+              <label>Category name</label>
+              <input type="text" id="catName" placeholder="e.g. Groceries">
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Type</label>
+                <select id="catType">
+                  <option value="need">Need</option>
+                  <option value="want">Want</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Amount</label>
+                <input type="number" id="catAmount" placeholder="0" min="0">
+              </div>
+            </div>
+            <button class="btn-sm" id="addCatBtn" style="width:100%; margin-bottom:8px;">Add Category</button>
+            <div class="avail-note" id="availNote">Available to budget: 0</div>
+            <div id="catList" style="margin-top:14px;"></div>
+          </div>
+
+          <div class="card">
+            <div class="section-title">🥧 Wants / Needs / Savings</div>
+            <div class="pie-wrap" id="pieWrap"></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:22px;">
+          <div class="section-title">🐷 Savings</div>
+          <div class="page-sub" style="margin-bottom:14px; margin-top:-8px;">Kept separate from your budget — this is money you're setting aside, not spending.</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Goal name</label>
+              <input type="text" id="savName" placeholder="e.g. Emergency Fund">
+            </div>
+            <div class="field">
+              <label>Target (optional)</label>
+              <input type="number" id="savTarget" placeholder="0" min="0">
+            </div>
+          </div>
+          <button class="btn-sm" id="addSavBtn" style="width:100%; margin-bottom:14px;">Add Savings Goal</button>
+          <div class="stat-pill" style="margin-bottom:16px; display:inline-block;">
+            <div class="num" id="statTotalSaved" style="color:var(--sage);">0</div>
+            <div class="lbl">Total Saved</div>
+          </div>
+          <div id="savList"></div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-title">➕ Add Transaction</div>
+            <div class="field-row">
+              <div class="field">
+                <label>Type</label>
+                <select id="txType">
+                  <option value="expense">Spent</option>
+                  <option value="income">Received</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Amount</label>
+                <input type="number" id="txAmount" placeholder="0" min="0">
+              </div>
+            </div>
+            <div class="field">
+              <label>Category / Source</label>
+              <input type="text" id="txCategory" list="catDatalist" placeholder="e.g. Groceries / Salary">
+              <datalist id="catDatalist"></datalist>
+            </div>
+            <div class="field">
+              <label>Note (optional)</label>
+              <input type="text" id="txNote" placeholder="e.g. Weekly market run">
+            </div>
+            <button class="btn-sm" id="addTxBtn" style="width:100%;">Add Transaction</button>
+          </div>
+          <div class="card">
+            <div class="section-title">🧾 Recent Transactions</div>
+            <div id="txList"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= CONSTANTS ================= */
+const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const PRAYERS = [
+  {key:'Fajr', emoji:'🌅'},
+  {key:'Dhuhr', emoji:'☀️'},
+  {key:'Asr', emoji:'🌤️'},
+  {key:'Maghrib', emoji:'🌇'},
+  {key:'Isha', emoji:'🌙'}
+];
+const DEFAULT_PRAYER_TIMES = {Fajr:'04:30', Dhuhr:'12:15', Asr:'15:45', Maghrib:'18:50', Isha:'20:15'};
+const QUOTES = [
+  "Small steps, done daily, quietly become a whole new life.",
+  "Discipline today is the peace of mind you'll thank yourself for tonight.",
+  "Every prayer, every habit, is a seed — trust the season it grows in.",
+  "You don't need a perfect day. You just need a faithful one.",
+  "Progress is a habit wearing patience as its favorite outfit.",
+  "The one who is consistent in little is trusted with much.",
+  "Begin. The rest arranges itself once you're in motion.",
+  "A calm heart and a clear plan can carry you through any day.",
+  "What you repeat, you become — choose today's repetitions with care.",
+  "Gratitude first, effort second, results will follow in their own time.",
+  "Your future self is built from today's small, unseen choices.",
+  "Ease comes with hardship — keep going, it's closer than it looks."
+];
+
+/* ================= STATE ================= */
+let state = {
+  profile: {name:''},
+  habits: [],
+  habitMeta: {lastChecked: null},
+  prayerTimes: {...DEFAULT_PRAYER_TIMES},
+  prayerLog: {},
+  budget: {categories: []},
+  savings: {goals: []},
+  transactions: []
+};
+let notifiedKeys = new Set();
+
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function dayOfWeek(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  return DAY_NAMES[d.getDay()];
+}
+function fmtTime(t){
+  if(!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  const ampm = h>=12 ? 'PM':'AM';
+  const h12 = h%12===0?12:h%12;
+  return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+function isHabitDue(habit, dateStr){
+  if(habit.frequency==='daily') return true;
+  return habit.days.includes(dayOfWeek(dateStr));
+}
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function monthStr(){ return todayStr().slice(0,7); }
+function categorySpend(catName){
+  const m = monthStr();
+  return state.transactions
+    .filter(t=> t.type==='expense' && t.date.slice(0,7)===m && t.category.trim().toLowerCase()===catName.trim().toLowerCase())
+    .reduce((sum,t)=> sum+Number(t.amount), 0);
+}
+function totalSaved(){
+  return state.savings.goals.reduce((sum,g)=> sum+Number(g.saved||0), 0);
+}
+function realMoneyLeft(){
+  const income = state.transactions.filter(t=>t.type==='income').reduce((a,t)=>a+Number(t.amount),0);
+  const expense = state.transactions.filter(t=>t.type==='expense').reduce((a,t)=>a+Number(t.amount),0);
+  return income - expense - totalSaved();
+}
+function totalAllocated(excludeId){
+  return state.budget.categories
+    .filter(c=> c.id!==excludeId)
+    .reduce((sum,c)=> sum+Number(c.amount), 0);
+}
+function availableToAllocate(excludeId){
+  return realMoneyLeft() - totalAllocated(excludeId);
+}
+
+/* ================= STORAGE ================= */
+async function loadState(){
+  try{
+    const raw = localStorage.getItem('systemData');
+    if(raw){
+      const parsed = JSON.parse(raw);
+      state = {...state, ...parsed};
+    }
+  }catch(e){ console.error('load failed', e); }
+}
+let saveTimer = null;
+function saveState(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    try{ localStorage.setItem('systemData', JSON.stringify(state)); }
+    catch(e){ console.error('save failed', e); alert('Could not save — your device storage may be full.'); }
+  }, 150);
+}
+
+/* ================= MISSED HABIT CHECK ================= */
+function processMissedHabits(){
+  const today = todayStr();
+  const last = state.habitMeta.lastChecked;
+  if(last === today) return;
+
+  if(last){
+    let cursor = new Date(last+'T00:00:00');
+    cursor.setDate(cursor.getDate()+1);
+    const todayDate = new Date(today+'T00:00:00');
+    while(cursor < todayDate){
+      const cStr = cursor.getFullYear()+'-'+String(cursor.getMonth()+1).padStart(2,'0')+'-'+String(cursor.getDate()).padStart(2,'0');
+      state.habits.forEach(h=>{
+        if(isHabitDue(h, cStr) && !h.completedDates.includes(cStr)){
+          h.missedCount = (h.missedCount||0)+1;
+          h.streak = 0;
+        }
+      });
+      cursor.setDate(cursor.getDate()+1);
+    }
+  }
+  state.habitMeta.lastChecked = today;
+  saveState();
+}
+
+/* ================= NOTIFICATIONS ================= */
+function setupNotifButton(){
+  const btn = document.getElementById('notifBtn');
+  const refresh = ()=>{
+    if(window.Notification && Notification.permission==='granted'){
+      btn.textContent = '🔔 Reminders On';
+      btn.classList.add('on');
+    } else {
+      btn.textContent = '🔔 Enable Reminders';
+      btn.classList.remove('on');
+    }
+  };
+  btn.addEventListener('click', async ()=>{
+    if(!window.Notification){ alert("This browser doesn't support notifications."); return; }
+    if(Notification.permission !== 'granted'){
+      await Notification.requestPermission();
+    }
+    refresh();
+  });
+  refresh();
+}
+function checkReminders(){
+  if(!window.Notification || Notification.permission!=='granted') return;
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const nowT = `${hh}:${mm}`;
+  const today = todayStr();
+
+  state.habits.forEach(h=>{
+    if(isHabitDue(h, today) && h.time===nowT && !h.completedDates.includes(today)){
+      const key = 'habit-'+h.id+'-'+today+'-'+nowT;
+      if(!notifiedKeys.has(key)){
+        notifiedKeys.add(key);
+        new Notification('🌸 Habit Reminder', {body: `Time for: ${h.name}`});
+      }
+    }
+  });
+  PRAYERS.forEach(p=>{
+    const t = state.prayerTimes[p.key];
+    const done = (state.prayerLog[today]||[]).includes(p.key);
+    if(t===nowT && !done){
+      const key = 'prayer-'+p.key+'-'+today+'-'+nowT;
+      if(!notifiedKeys.has(key)){
+        notifiedKeys.add(key);
+        new Notification('🕌 Prayer Reminder', {body: `It's time for ${p.key}`});
+      }
+    }
+  });
+}
+
+/* ================= RENDER: GREETING ================= */
+function renderGreeting(){
+  const now = new Date();
+  document.getElementById('greetDate').textContent = now.toLocaleDateString(undefined,{weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  if(state.profile.name){
+    document.getElementById('nameEntry').classList.add('hidden');
+    document.getElementById('returningEntry').classList.remove('hidden');
+    document.getElementById('greetName').textContent = state.profile.name;
+    const dayIdx = Math.floor(now.getTime()/86400000) % QUOTES.length;
+    document.getElementById('quoteBox').textContent = '“' + QUOTES[dayIdx] + '”';
+  } else {
+    document.getElementById('nameEntry').classList.remove('hidden');
+    document.getElementById('returningEntry').classList.add('hidden');
+  }
+}
+
+/* ================= RENDER: HOME ================= */
+function renderHome(){
+  const today = todayStr();
+  document.getElementById('homeName').textContent = state.profile.name || 'there';
+  document.getElementById('homeDate').textContent = new Date().toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'});
+
+  const dueHabits = state.habits.filter(h=>isHabitDue(h, today));
+  const doneHabits = dueHabits.filter(h=>h.completedDates.includes(today));
+  const prayerDone = (state.prayerLog[today]||[]);
+
+  const totalItems = dueHabits.length + PRAYERS.length;
+  const doneItems = doneHabits.length + prayerDone.length;
+  const pct = totalItems ? Math.round((doneItems/totalItems)*100) : 0;
+
+  const circumference = 339;
+  document.getElementById('bloomRing').setAttribute('stroke-dashoffset', circumference - (circumference*pct/100));
+  document.getElementById('bloomPct').textContent = pct+'%';
+
+  const todayList = document.getElementById('todayList');
+  todayList.innerHTML = '';
+  dueHabits.forEach(h=>{
+    const ok = h.completedDates.includes(today);
+    todayList.innerHTML += `<div class="today-item ${ok?'ok':''}">${ok?'✅':'⭕'} ${h.name} <span style="margin-left:auto; color:var(--plum-soft); font-size:11px;">${fmtTime(h.time)}</span></div>`;
+  });
+  PRAYERS.forEach(p=>{
+    const ok = prayerDone.includes(p.key);
+    todayList.innerHTML += `<div class="today-item ${ok?'ok':''}">${ok?'✅':'⭕'} ${p.emoji} ${p.key} <span style="margin-left:auto; color:var(--plum-soft); font-size:11px;">${fmtTime(state.prayerTimes[p.key])}</span></div>`;
+  });
+  if(!dueHabits.length && !PRAYERS.length){
+    todayList.innerHTML = '<div class="empty-state">Nothing scheduled — add a habit to get started 🌱</div>';
+  }
+
+  const hs = document.getElementById('homeHabitSummary');
+  hs.innerHTML = dueHabits.length ? '' : '<div class="empty-state">No habits due today</div>';
+  dueHabits.forEach(h=>{
+    const ok = h.completedDates.includes(today);
+    hs.innerHTML += `<div class="today-item ${ok?'ok':''}">${ok?'✅':'⭕'} ${h.name}</div>`;
+  });
+
+  const ps = document.getElementById('homePrayerSummary');
+  ps.innerHTML = '';
+  PRAYERS.forEach(p=>{
+    const ok = prayerDone.includes(p.key);
+    ps.innerHTML += `<div class="today-item ${ok?'ok':''}">${ok?'✅':'⭕'} ${p.emoji} ${p.key}</div>`;
+  });
+}
+
+/* ================= RENDER: HABITS ================= */
+function renderHabitDaysChips(){
+  const wrap = document.getElementById('habitDaysChips');
+  wrap.innerHTML = DAY_NAMES.map(d=>`<button type="button" class="chip" data-day="${d}">${d}</button>`).join('');
+  wrap.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=> chip.classList.toggle('selected'));
+  });
+}
+function renderHabits(){
+  const today = todayStr();
+  const list = document.getElementById('habitList');
+  if(!state.habits.length){
+    list.innerHTML = '<div class="empty-state">No habits yet. Add your first one 🌱</div>';
+    return;
+  }
+  list.innerHTML = '';
+  state.habits.forEach(h=>{
+    const due = isHabitDue(h, today);
+    const done = h.completedDates.includes(today);
+    const scheduleLabel = h.frequency==='daily' ? 'Daily' : ('Weekly · '+h.days.join(', '));
+    list.innerHTML += `
+      <div class="habit-card ${due?'due-now':''} ${done?'done-today':''}">
+        <div class="habit-main">
+          <div class="habit-name">${h.name}</div>
+          <div class="habit-meta">${scheduleLabel} · ⏰ ${fmtTime(h.time)}</div>
+        </div>
+        <div class="habit-actions">
+          ${h.streak>0?`<span class="streak-badge">🔥 ${h.streak}</span>`:''}
+          ${h.missedCount>0?`<span class="miss-badge">⚠ ${h.missedCount} missed</span>`:''}
+          <button class="check-btn ${done?'checked':''}" data-id="${h.id}" title="Mark done today">${done?'✓':'○'}</button>
+          <button class="btn-danger" data-del="${h.id}">Remove</button>
+        </div>
+      </div>`;
+  });
+  list.querySelectorAll('.check-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const h = state.habits.find(x=>x.id===btn.dataset.id);
+      const t = todayStr();
+      if(h.completedDates.includes(t)){
+        h.completedDates = h.completedDates.filter(d=>d!==t);
+        h.streak = Math.max(0, h.streak-1);
+      } else {
+        h.completedDates.push(t);
+        h.streak = (h.streak||0)+1;
+      }
+      saveState(); renderHabits(); renderHome();
+    });
+  });
+  list.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.habits = state.habits.filter(x=>x.id!==btn.dataset.del);
+      saveState(); renderHabits(); renderHome();
+    });
+  });
+}
+
+/* ================= RENDER: PRAYERS ================= */
+function renderPrayers(){
+  const today = todayStr();
+  const doneList = state.prayerLog[today] || [];
+  const grid = document.getElementById('prayerGrid');
+  grid.innerHTML = '';
+  PRAYERS.forEach(p=>{
+    const done = doneList.includes(p.key);
+    grid.innerHTML += `
+      <div class="prayer-card ${done?'done':''}">
+        <div class="prayer-emoji">${p.emoji}</div>
+        <div class="prayer-name">${p.key}</div>
+        <div class="prayer-time"><input type="time" value="${state.prayerTimes[p.key]}" data-ptime="${p.key}"></div>
+        <button class="prayer-check ${done?'done':''}" data-pkey="${p.key}">${done? '✓ Prayed':'Mark as Prayed'}</button>
+      </div>`;
+  });
+  grid.querySelectorAll('[data-ptime]').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      state.prayerTimes[inp.dataset.ptime] = inp.value;
+      saveState(); renderHome();
+    });
+  });
+  grid.querySelectorAll('[data-pkey]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const key = btn.dataset.pkey;
+      const t = todayStr();
+      if(!state.prayerLog[t]) state.prayerLog[t] = [];
+      if(state.prayerLog[t].includes(key)){
+        state.prayerLog[t] = state.prayerLog[t].filter(k=>k!==key);
+      } else {
+        state.prayerLog[t].push(key);
+      }
+      saveState(); renderPrayers(); renderHome();
+    });
+  });
+
+  const count = doneList.length;
+  document.getElementById('prayerProgressLabel').textContent = `${count} / 5 prayed today`;
+  const pct = Math.round((count/5)*100);
+  document.getElementById('prayerProgressPct').textContent = pct+'%';
+  document.getElementById('prayerBar').style.width = pct+'%';
+}
+
+/* ================= RENDER: FINANCE ================= */
+function renderFinance(){
+  const cats = state.budget.categories;
+  const catList = document.getElementById('catList');
+  catList.innerHTML = cats.length ? '' : '<div class="empty-state">No categories yet — add one above 🌷</div>';
+  cats.forEach(c=>{
+    const tagClass = c.type==='need'?'tag-need': c.type==='want'?'tag-want':'tag-saving';
+    const spent = categorySpend(c.name);
+    const remaining = c.amount - spent;
+    const pct = c.amount>0 ? Math.min(100, Math.round((spent/c.amount)*100)) : 0;
+    const barColor = remaining<=0 ? 'var(--red-soft)' : (pct>=80 ? 'var(--gold)' : 'var(--sage)');
+    let note = '';
+    if(remaining<=0){
+      note = `<div class="cat-note warn">⚠️ You've used up your ${c.name} budget for this month${remaining<0 ? ' (over by '+Math.abs(remaining).toLocaleString()+')':''}.</div>`;
+    } else if(pct>=80){
+      note = `<div class="cat-note caution">👀 Only ${remaining.toLocaleString()} left for ${c.name} this month.</div>`;
+    }
+    catList.innerHTML += `
+      <div class="cat-block">
+        <div class="cat-row">
+          <span><span class="cat-tag ${tagClass}">${c.type}</span> &nbsp;<b>${c.name}</b></span>
+          <button class="btn-danger" data-catdel="${c.id}">✕</button>
+        </div>
+        <div class="cat-sub">
+          <span>Spent ${spent.toLocaleString()} of ${c.amount.toLocaleString()}</span>
+          <span>${remaining>=0? remaining.toLocaleString()+' left' : 'over by '+Math.abs(remaining).toLocaleString()}</span>
+        </div>
+        <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%; background:${barColor};"></div></div>
+        ${note}
+      </div>`;
+  });
+  catList.querySelectorAll('[data-catdel]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.budget.categories = cats.filter(c=>c.id!==btn.dataset.catdel);
+      saveState(); renderFinance();
+    });
+  });
+
+  const datalist = document.getElementById('catDatalist');
+  datalist.innerHTML = cats.map(c=>`<option value="${c.name}"></option>`).join('');
+
+  const avail = availableToAllocate();
+  const availEl = document.getElementById('availNote');
+  const realMoney = realMoneyLeft();
+  availEl.classList.remove('tight','over');
+  if(avail < 0){
+    availEl.classList.add('over');
+    availEl.textContent = `⚠️ Your budgets exceed your real money by ${Math.abs(avail).toLocaleString()}`;
+  } else if(realMoney>0 && avail < realMoney*0.15){
+    availEl.classList.add('tight');
+    availEl.textContent = `Available to budget: ${avail.toLocaleString()}`;
+  } else {
+    availEl.textContent = `Available to budget: ${avail.toLocaleString()}`;
+  }
+
+  const totals = {need:0, want:0};
+  cats.forEach(c=> { if(totals[c.type]!==undefined) totals[c.type]+=Number(c.amount); });
+  const needWantBudget = totals.need+totals.want;
+  const savingsSlice = state.savings.goals.reduce((sum,g)=> sum + (Number(g.target)>0 ? Number(g.target) : Number(g.saved||0)), 0);
+  const pieTotal = needWantBudget+savingsSlice;
+
+  const pieWrap = document.getElementById('pieWrap');
+  if(pieTotal<=0){
+    pieWrap.innerHTML = '<div class="empty-state">Add budget categories and a savings goal to see your ratio 🥧</div>';
+  } else {
+    const segs = [
+      {label:'Needs', val: totals.need, color:'#E0759D'},
+      {label:'Wants', val: totals.want, color:'#D9A55E'},
+      {label:'Savings', val: savingsSlice, color:'#8FAE8B'}
+    ];
+    const r=52, C=2*Math.PI*r;
+    let offset=0;
+    let circles='';
+    segs.forEach(s=>{
+      const frac = s.val/pieTotal;
+      const dash = frac*C;
+      circles += `<circle cx="70" cy="70" r="${r}" fill="none" stroke="${s.color}" stroke-width="24"
+        stroke-dasharray="${dash} ${C-dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 70 70)"/>`;
+      offset += dash;
+    });
+    const legend = segs.map(s=>{
+      const pct = pieTotal? Math.round((s.val/pieTotal)*100):0;
+      return `<div class="legend-item"><span class="legend-dot" style="background:${s.color}"></span>${s.label}: ${pct}%</div>`;
+    }).join('');
+    pieWrap.innerHTML = `
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle cx="70" cy="70" r="52" fill="none" stroke="#F6EEF2" stroke-width="24"/>
+        ${circles}
+      </svg>
+      <div class="legend">${legend}</div>`;
+  }
+
+  const income = state.transactions.filter(t=>t.type==='income').reduce((a,t)=>a+Number(t.amount),0);
+  const expense = state.transactions.filter(t=>t.type==='expense').reduce((a,t)=>a+Number(t.amount),0);
+  const balance = realMoneyLeft();
+  const balanceEl = document.getElementById('statBalance');
+  balanceEl.textContent = (balance<0?'-':'') + Math.abs(balance).toLocaleString();
+  balanceEl.classList.toggle('negative', balance<0);
+  document.getElementById('statBalanceSub').textContent = balance<0
+    ? "You've spent more than you've received so far."
+    : "Received minus spent minus what you've set aside in Savings.";
+  document.getElementById('statIncome').textContent = income.toLocaleString();
+  document.getElementById('statExpense').textContent = expense.toLocaleString();
+  document.getElementById('statRemain').textContent = (needWantBudget-expense).toLocaleString();
+
+  const txList = document.getElementById('txList');
+  const sorted = [...state.transactions].sort((a,b)=> b.date.localeCompare(a.date));
+  txList.innerHTML = sorted.length ? '' : '<div class="empty-state">No transactions yet</div>';
+  sorted.slice(0,30).forEach(t=>{
+    txList.innerHTML += `
+      <div class="tx-row">
+        <div class="tx-left">
+          <span>${t.type==='income'?'💵':'🧾'} ${t.category}${t.note? ' — '+t.note:''}</span>
+          <span class="tx-cat">${t.date}</span>
+        </div>
+        <span style="display:flex; align-items:center; gap:10px;">
+          <span class="tx-amt ${t.type}">${t.type==='income'?'+':'-'}${Number(t.amount).toLocaleString()}</span>
+          <button class="btn-danger" data-txdel="${t.id}">✕</button>
+        </span>
+      </div>`;
+  });
+  txList.querySelectorAll('[data-txdel]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.transactions = state.transactions.filter(t=>t.id!==btn.dataset.txdel);
+      saveState(); renderFinance();
+    });
+  });
+
+  renderSavings();
+}
+
+function renderSavings(){
+  document.getElementById('statTotalSaved').textContent = totalSaved().toLocaleString();
+  const goals = state.savings.goals;
+  const list = document.getElementById('savList');
+  list.innerHTML = goals.length ? '' : '<div class="empty-state">No savings goals yet — add one above 🐷</div>';
+  goals.forEach(g=>{
+    const hasTarget = Number(g.target) > 0;
+    const pct = hasTarget ? Math.min(100, Math.round((g.saved/g.target)*100)) : 0;
+    list.innerHTML += `
+      <div class="sav-goal">
+        <div class="sav-goal-top">
+          <span class="sav-goal-name">🐷 ${g.name}</span>
+          <button class="btn-danger" data-savdel="${g.id}">✕</button>
+        </div>
+        <div class="sav-goal-amt">${g.saved.toLocaleString()}${hasTarget ? ' of '+Number(g.target).toLocaleString()+' ('+pct+'%)' : ' saved'}</div>
+        ${hasTarget ? `<div class="sav-bar-track"><div class="sav-bar-fill" style="width:${pct}%;"></div></div>` : ''}
+        ${hasTarget && pct>=100 ? '<div class="cat-note" style="background:var(--sage-light); color:#3d5c3a; margin-bottom:8px;">🎉 Goal reached!</div>' : ''}
+        <div class="sav-actions">
+          <input type="number" min="0" placeholder="Amount" id="savAmt-${g.id}">
+          <button class="sav-mini-btn sav-deposit" data-deposit="${g.id}">+ Deposit</button>
+          <button class="sav-mini-btn sav-withdraw" data-withdraw="${g.id}">− Withdraw</button>
+        </div>
+      </div>`;
+  });
+  list.querySelectorAll('[data-savdel]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.savings.goals = goals.filter(g=>g.id!==btn.dataset.savdel);
+      saveState(); renderFinance();
+    });
+  });
+  list.querySelectorAll('[data-deposit]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.deposit;
+      const input = document.getElementById('savAmt-'+id);
+      const amt = Number(input.value);
+      if(!amt || amt<=0){ alert('Enter an amount to deposit.'); return; }
+      if(amt > realMoneyLeft()){
+        alert(`You only have ${realMoneyLeft().toLocaleString()} of real money left to move into savings.`);
+        return;
+      }
+      const g = goals.find(x=>x.id===id);
+      g.saved = Number(g.saved||0) + amt;
+      saveState(); renderFinance();
+    });
+  });
+  list.querySelectorAll('[data-withdraw]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.withdraw;
+      const input = document.getElementById('savAmt-'+id);
+      const amt = Number(input.value);
+      if(!amt || amt<=0){ alert('Enter an amount to withdraw.'); return; }
+      const g = goals.find(x=>x.id===id);
+      if(amt > g.saved){ alert(`You've only saved ${g.saved.toLocaleString()} in this goal.`); return; }
+      g.saved = Number(g.saved) - amt;
+      saveState(); renderFinance();
+    });
+  });
+}
+
+/* ================= NAV ================= */
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.page===name));
+}
+
+/* ================= EVENT WIRING ================= */
+function wireEvents(){
+  document.getElementById('saveNameBtn').addEventListener('click', async ()=>{
+    const val = document.getElementById('nameInput').value.trim();
+    if(!val){ document.getElementById('nameInput').focus(); return; }
+    state.profile.name = val;
+    saveState();
+    renderGreeting();
+  });
+  document.getElementById('nameInput').addEventListener('keydown', e=>{
+    if(e.key==='Enter') document.getElementById('saveNameBtn').click();
+  });
+
+  document.getElementById('enterBtn').addEventListener('click', ()=>{
+    document.getElementById('greetScreen').classList.add('hidden');
+    document.getElementById('mainScreen').classList.remove('hidden');
+    renderHome(); renderHabits(); renderPrayers(); renderFinance();
+  });
+
+  document.querySelectorAll('.nav-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> showPage(btn.dataset.page));
+  });
+
+  document.getElementById('habitFreq').addEventListener('change', e=>{
+    document.getElementById('habitDaysField').classList.toggle('hidden', e.target.value!=='weekly');
+  });
+
+  document.getElementById('addHabitBtn').addEventListener('click', ()=>{
+    const name = document.getElementById('habitName').value.trim();
+    const freq = document.getElementById('habitFreq').value;
+    const time = document.getElementById('habitTime').value || '08:00';
+    if(!name){ alert('Please enter a habit name.'); return; }
+    let days = [];
+    if(freq==='weekly'){
+      days = [...document.querySelectorAll('#habitDaysChips .chip.selected')].map(c=>c.dataset.day);
+      if(!days.length){ alert('Please choose at least one day.'); return; }
+    }
+    state.habits.push({
+      id: uid(), name, frequency: freq, days, time,
+      streak: 0, missedCount: 0, completedDates: []
+    });
+    saveState();
+    document.getElementById('habitName').value='';
+    renderHabits(); renderHome();
+  });
+
+  document.getElementById('addCatBtn').addEventListener('click', ()=>{
+    const name = document.getElementById('catName').value.trim();
+    const type = document.getElementById('catType').value;
+    const amount = Number(document.getElementById('catAmount').value);
+    if(!name || !amount){ alert('Please enter a category name and amount.'); return; }
+    const available = availableToAllocate();
+    if(amount > available){
+      alert(`You only have ${available.toLocaleString()} left unallocated. "${name}" at ${amount.toLocaleString()} would put your budgets ahead of your real money — lower the amount or add more income first.`);
+      return;
+    }
+    state.budget.categories.push({id: uid(), name, type, amount});
+    saveState();
+    document.getElementById('catName').value='';
+    document.getElementById('catAmount').value='';
+    renderFinance();
+  });
+
+  document.getElementById('addSavBtn').addEventListener('click', ()=>{
+    const name = document.getElementById('savName').value.trim();
+    const target = Number(document.getElementById('savTarget').value) || 0;
+    if(!name){ alert('Please enter a name for your savings goal.'); return; }
+    state.savings.goals.push({id: uid(), name, target, saved: 0});
+    saveState();
+    document.getElementById('savName').value='';
+    document.getElementById('savTarget').value='';
+    renderFinance();
+  });
+
+  document.getElementById('addTxBtn').addEventListener('click', ()=>{
+    const type = document.getElementById('txType').value;
+    const amount = Number(document.getElementById('txAmount').value);
+    const category = document.getElementById('txCategory').value.trim();
+    const note = document.getElementById('txNote').value.trim();
+    if(!amount || !category){ alert('Please enter an amount and category.'); return; }
+    state.transactions.push({id: uid(), date: todayStr(), type, amount, category, note});
+    saveState();
+    document.getElementById('txAmount').value='';
+    document.getElementById('txCategory').value='';
+    document.getElementById('txNote').value='';
+    renderFinance();
+  });
+}
+
+/* ================= INIT ================= */
+(async function init(){
+  await loadState();
+  processMissedHabits();
+  renderHabitDaysChips();
+  renderGreeting();
+  wireEvents();
+  setupNotifButton();
+  setInterval(checkReminders, 20000);
+})();
+</script>
+</body>
+</html>
