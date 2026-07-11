@@ -148,6 +148,13 @@ input, select{font-family:inherit;}
   background:none; border:none; color:var(--rose-dark); font-weight:700;
   text-decoration:underline; cursor:pointer; font-size:13px; margin-left:4px;
 }
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:42px;}
+.pw-toggle{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  background:none; border:none; font-size:16px; padding:4px; opacity:0.6;
+}
+.pw-toggle:hover{opacity:1;}
 
 /* ---------- MAIN APP LAYOUT ---------- */
 #mainScreen{
@@ -501,11 +508,14 @@ input, select{font-family:inherit;}
         <div class="greet-sub" id="authSub">Log in to see your data on this device.</div>
         <div class="name-input-wrap">
           <label>Email</label>
-          <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="username">
+          <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
         </div>
         <div class="name-input-wrap">
           <label>Password</label>
-          <input type="password" id="authPassword" placeholder="At least 6 characters" autocomplete="current-password">
+          <div class="pw-wrap">
+            <input type="password" id="authPassword" placeholder="At least 6 characters" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false">
+            <button type="button" id="togglePwBtn" class="pw-toggle">👁️</button>
+          </div>
         </div>
         <div id="authError" class="auth-error hidden"></div>
         <button class="btn-primary" id="authSubmitBtn">Log In</button>
@@ -1690,6 +1700,13 @@ async function afterAuthSuccess(session){
 }
 
 function wireEvents(){
+  document.getElementById('togglePwBtn').addEventListener('click', ()=>{
+    const pw = document.getElementById('authPassword');
+    const btn = document.getElementById('togglePwBtn');
+    if(pw.type==='password'){ pw.type='text'; btn.textContent='🙈'; }
+    else { pw.type='password'; btn.textContent='👁️'; }
+  });
+
   document.getElementById('authToggleBtn').addEventListener('click', ()=>{
     authMode = authMode==='login' ? 'signup' : 'login';
     hideAuthError();
@@ -1710,8 +1727,8 @@ function wireEvents(){
 
   document.getElementById('authSubmitBtn').addEventListener('click', async ()=>{
     hideAuthError();
-    const email = document.getElementById('authEmail').value.trim();
-    const password = document.getElementById('authPassword').value;
+    const email = document.getElementById('authEmail').value.trim().toLowerCase();
+    const password = document.getElementById('authPassword').value.trim();
     if(!email || !password){ showAuthError('Please enter both an email and a password.'); return; }
     if(password.length < 6){ showAuthError('Password must be at least 6 characters.'); return; }
 
