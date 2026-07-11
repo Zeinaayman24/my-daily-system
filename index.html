@@ -444,6 +444,9 @@ input, select{font-family:inherit;}
       <button class="nav-btn" data-page="finance">💰 Finance</button>
       <div class="sidebar-foot">
         <button class="notif-btn" id="notifBtn">🔔 Enable Reminders</button>
+        <button class="btn-outline" id="exportBtn" style="width:100%; margin-top:8px;">⬇️ Export Data</button>
+        <button class="btn-outline" id="importBtn" style="width:100%; margin-top:8px;">⬆️ Import Data</button>
+        <input type="file" id="importFile" accept="application/json" class="hidden">
       </div>
     </nav>
 
@@ -1257,6 +1260,53 @@ function wireEvents(){
     document.getElementById('catName').value='';
     document.getElementById('catAmount').value='';
     renderFinance();
+  });
+
+  document.getElementById('exportBtn').addEventListener('click', ()=>{
+    const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'my-daily-system-backup.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('importBtn').addEventListener('click', ()=>{
+    document.getElementById('importFile').click();
+  });
+
+  document.getElementById('importFile').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      try{
+        const parsed = JSON.parse(ev.target.result);
+        if(!parsed || typeof parsed !== 'object'){ throw new Error('bad format'); }
+        const proceed = confirm('This will replace everything currently on this phone with the imported backup. Continue?');
+        if(!proceed) return;
+        state = {
+          profile: parsed.profile || {name:''},
+          habits: parsed.habits || [],
+          habitMeta: parsed.habitMeta || {lastChecked:null},
+          prayerTimes: parsed.prayerTimes || {...DEFAULT_PRAYER_TIMES},
+          prayerLog: parsed.prayerLog || {},
+          budget: parsed.budget || {categories:[]},
+          savings: parsed.savings || {goals:[]},
+          transactions: parsed.transactions || []
+        };
+        saveState();
+        renderGreeting(); renderHome(); renderHabits(); renderPrayers(); renderFinance();
+        alert('Your data has been imported successfully 🌸');
+      }catch(err){
+        alert("That file couldn't be read as a backup. Please choose the exported .json file.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   });
 
   document.getElementById('addSavBtn').addEventListener('click', ()=>{
