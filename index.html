@@ -138,6 +138,16 @@ input, select{font-family:inherit;}
   transition: transform .15s, box-shadow .15s;
 }
 .btn-primary:hover{transform: translateY(-2px); box-shadow: 0 12px 24px -6px rgba(194,78,126,0.6);}
+.btn-primary:disabled{opacity:0.6; transform:none; cursor:not-allowed;}
+.auth-error{
+  background:#FBE4E4; color:var(--red-soft); font-size:12.5px; font-weight:600;
+  padding:10px 12px; border-radius:10px; margin-bottom:16px; text-align:left;
+}
+.auth-toggle{margin-top:16px; font-size:13px; color:var(--plum-soft);}
+.auth-toggle button{
+  background:none; border:none; color:var(--rose-dark); font-weight:700;
+  text-decoration:underline; cursor:pointer; font-size:13px; margin-left:4px;
+}
 
 /* ---------- MAIN APP LAYOUT ---------- */
 #mainScreen{
@@ -485,19 +495,36 @@ input, select{font-family:inherit;}
     <div class="greet-card">
       <div class="greet-emoji">🌸</div>
       <div class="greet-date" id="greetDate">—</div>
-      <div id="nameEntry">
-        <div class="greet-title">Welcome 👋</div>
+
+      <div id="authEntry">
+        <div class="greet-title" id="authTitle">Welcome back 👋</div>
+        <div class="greet-sub" id="authSub">Log in to see your data on this device.</div>
+        <div class="name-input-wrap">
+          <label>Email</label>
+          <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="username">
+        </div>
+        <div class="name-input-wrap">
+          <label>Password</label>
+          <input type="password" id="authPassword" placeholder="At least 6 characters" autocomplete="current-password">
+        </div>
+        <div id="authError" class="auth-error hidden"></div>
+        <button class="btn-primary" id="authSubmitBtn">Log In</button>
+        <div class="auth-toggle">
+          <span id="authToggleText">Don't have an account yet?</span>
+          <button id="authToggleBtn" type="button">Sign Up</button>
+        </div>
+      </div>
+
+      <div id="nameEntry" class="hidden">
+        <div class="greet-title">Almost there 🌷</div>
         <div class="greet-sub">Let's set up your space before we begin.</div>
         <div class="name-input-wrap">
           <label>What's your name?</label>
           <input type="text" id="nameInput" placeholder="e.g. Amina">
         </div>
-        <div class="name-input-wrap">
-          <label>Sync code (optional)</label>
-          <input type="text" id="syncCodeInput" placeholder="Leave blank to create one, or paste one from your other phone">
-        </div>
         <button class="btn-primary" id="saveNameBtn">Create My System 🌷</button>
       </div>
+
       <div id="returningEntry" class="hidden">
         <div class="greet-title">Good morning, <span id="greetName">there</span> 💕</div>
         <div class="greet-sub">Amr loves you and wishes you the most beautiful day 🌷</div>
@@ -518,9 +545,9 @@ input, select{font-family:inherit;}
       <button class="nav-btn" data-page="finance">💰 Finance</button>
       <div class="sidebar-foot">
         <button class="notif-btn" id="notifBtn">🔔 Enable Reminders</button>
-        <button class="btn-outline" id="syncBtn" style="width:100%; margin-top:8px;">🔗 Sync Code</button>
         <button class="btn-outline" id="exportBtn" style="width:100%; margin-top:8px;">⬇️ Export Data</button>
         <button class="btn-outline" id="importBtn" style="width:100%; margin-top:8px;">⬆️ Import Data</button>
+        <button class="btn-outline" id="logoutBtn" style="width:100%; margin-top:8px; color:var(--red-soft);">🚪 Log Out</button>
         <input type="file" id="importFile" accept="application/json" class="hidden">
       </div>
     </nav>
@@ -820,6 +847,7 @@ input, select{font-family:inherit;}
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ================= CONSTANTS ================= */
 const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -849,10 +877,9 @@ const QUOTES = [
 /* ================= STATE ================= */
 const SUPABASE_URL = 'https://izdqsoicbbpecmkwcjvg.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6ZHFzb2ljYmJwZWNta3djanZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3Njc0NjAsImV4cCI6MjA5OTM0MzQ2MH0.oqzSQNEFZDkWxSxZi00LjHDNqdd1heEjHZxPJBNXd6E';
-const SUPABASE_TABLE_URL = SUPABASE_URL + '/rest/v1/app_sync';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let state = {
-  syncCode: null,
   profile: {name:''},
   habits: [],
   habitMeta: {lastChecked: null},
@@ -865,40 +892,25 @@ let state = {
 };
 let notifiedKeys = new Set();
 let cloudSyncing = false;
-
-function genSyncCode(){
-  if(window.crypto && crypto.randomUUID) return crypto.randomUUID().slice(0,8).toUpperCase();
-  return Math.random().toString(36).slice(2,10).toUpperCase();
-}
+let currentUserId = null;
 
 async function cloudPush(){
-  if(!state.syncCode) return;
+  if(!currentUserId) return;
   try{
-    await fetch(SUPABASE_TABLE_URL, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates'
-      },
-      body: JSON.stringify([{ sync_code: state.syncCode, data: state, updated_at: new Date().toISOString() }])
+    await sb.from('app_data').upsert({
+      user_id: currentUserId,
+      data: state,
+      updated_at: new Date().toISOString()
     });
   }catch(e){ console.error('cloud push failed', e); }
 }
 
-async function cloudPull(code){
+async function cloudPull(){
+  if(!currentUserId) return null;
   try{
-    const res = await fetch(`${SUPABASE_TABLE_URL}?sync_code=eq.${encodeURIComponent(code)}&select=data`, {
-      headers: {
-        'apikey': SUPABASE_ANON_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
-      }
-    });
-    if(!res.ok) return null;
-    const rows = await res.json();
-    if(rows && rows.length && rows[0].data) return rows[0].data;
-    return null;
+    const { data, error } = await sb.from('app_data').select('data').eq('user_id', currentUserId).maybeSingle();
+    if(error){ console.error('cloud pull error', error); return null; }
+    return data ? data.data : null;
   }catch(e){ console.error('cloud pull failed', e); return null; }
 }
 
@@ -953,7 +965,7 @@ function availableToAllocate(excludeId){
 }
 
 /* ================= STORAGE ================= */
-async function loadState(){
+function loadLocalCache(){
   try{
     const raw = localStorage.getItem('systemData');
     if(raw){
@@ -961,14 +973,6 @@ async function loadState(){
       state = {...state, ...parsed};
     }
   }catch(e){ console.error('load failed', e); }
-
-  if(state.syncCode){
-    const cloudData = await cloudPull(state.syncCode);
-    if(cloudData){
-      state = {...state, ...cloudData, syncCode: state.syncCode};
-      try{ localStorage.setItem('systemData', JSON.stringify(state)); }catch(e){}
-    }
-  }
 }
 let saveTimer = null;
 function saveState(){
@@ -1061,14 +1065,9 @@ function renderGreeting(){
   const now = new Date();
   document.getElementById('greetDate').textContent = now.toLocaleDateString(undefined,{weekday:'long', year:'numeric', month:'long', day:'numeric'});
   if(state.profile.name){
-    document.getElementById('nameEntry').classList.add('hidden');
-    document.getElementById('returningEntry').classList.remove('hidden');
     document.getElementById('greetName').textContent = state.profile.name;
     const dayIdx = Math.floor(now.getTime()/86400000) % QUOTES.length;
     document.getElementById('quoteBox').textContent = '“' + QUOTES[dayIdx] + '”';
-  } else {
-    document.getElementById('nameEntry').classList.remove('hidden');
-    document.getElementById('returningEntry').classList.add('hidden');
   }
 }
 
@@ -1663,37 +1662,98 @@ function showPage(name){
 }
 
 /* ================= EVENT WIRING ================= */
+let authMode = 'login';
+
+function showAuthError(msg){
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+function hideAuthError(){
+  document.getElementById('authError').classList.add('hidden');
+}
+
+async function afterAuthSuccess(session){
+  currentUserId = session.user.id;
+  const cloudData = await cloudPull();
+  if(cloudData){
+    state = {...state, ...cloudData};
+    try{ localStorage.setItem('systemData', JSON.stringify(state)); }catch(e){}
+  }
+  document.getElementById('authEntry').classList.add('hidden');
+  if(state.profile && state.profile.name){
+    document.getElementById('returningEntry').classList.remove('hidden');
+    renderGreeting();
+  } else {
+    document.getElementById('nameEntry').classList.remove('hidden');
+  }
+}
+
 function wireEvents(){
+  document.getElementById('authToggleBtn').addEventListener('click', ()=>{
+    authMode = authMode==='login' ? 'signup' : 'login';
+    hideAuthError();
+    if(authMode==='signup'){
+      document.getElementById('authTitle').textContent = 'Create your account 🌷';
+      document.getElementById('authSub').textContent = 'One login works on every device.';
+      document.getElementById('authSubmitBtn').textContent = 'Sign Up';
+      document.getElementById('authToggleText').textContent = 'Already have an account?';
+      document.getElementById('authToggleBtn').textContent = 'Log In';
+    } else {
+      document.getElementById('authTitle').textContent = 'Welcome back 👋';
+      document.getElementById('authSub').textContent = 'Log in to see your data on this device.';
+      document.getElementById('authSubmitBtn').textContent = 'Log In';
+      document.getElementById('authToggleText').textContent = "Don't have an account yet?";
+      document.getElementById('authToggleBtn').textContent = 'Sign Up';
+    }
+  });
+
+  document.getElementById('authSubmitBtn').addEventListener('click', async ()=>{
+    hideAuthError();
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    if(!email || !password){ showAuthError('Please enter both an email and a password.'); return; }
+    if(password.length < 6){ showAuthError('Password must be at least 6 characters.'); return; }
+
+    const btn = document.getElementById('authSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = authMode==='login' ? 'Logging in…' : 'Signing up…';
+
+    try{
+      if(authMode==='signup'){
+        const { data, error } = await sb.auth.signUp({ email, password });
+        if(error){ showAuthError(error.message); return; }
+        if(!data.session){
+          authMode = 'login';
+          document.getElementById('authTitle').textContent = 'Welcome back 👋';
+          document.getElementById('authSub').textContent = 'Log in to see your data on this device.';
+          document.getElementById('authSubmitBtn').textContent = 'Log In';
+          document.getElementById('authToggleText').textContent = "Don't have an account yet?";
+          document.getElementById('authToggleBtn').textContent = 'Sign Up';
+          showAuthError("Account created! Check your email to confirm it, then log in here.");
+          return;
+        }
+        await afterAuthSuccess(data.session);
+      } else {
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if(error){ showAuthError(error.message); return; }
+        await afterAuthSuccess(data.session);
+      }
+    } catch(e){
+      showAuthError('Something went wrong. Please check your connection and try again.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = authMode==='login' ? 'Log In' : 'Sign Up';
+    }
+  });
+
   document.getElementById('saveNameBtn').addEventListener('click', async ()=>{
     const val = document.getElementById('nameInput').value.trim();
     if(!val){ document.getElementById('nameInput').focus(); return; }
     state.profile.name = val;
-
-    const pastedCode = document.getElementById('syncCodeInput').value.trim().toUpperCase();
-    const btn = document.getElementById('saveNameBtn');
-    btn.textContent = 'Setting up…';
-    btn.disabled = true;
-
-    if(pastedCode){
-      state.syncCode = pastedCode;
-      const cloudData = await cloudPull(pastedCode);
-      if(cloudData){
-        state = {...state, ...cloudData, syncCode: pastedCode};
-        alert('Linked! Your existing data from your other phone has been loaded 🌸');
-      } else {
-        await cloudPush();
-        alert(`No existing data found for that code — this phone is now the starting point. Code: ${pastedCode}`);
-      }
-    } else {
-      const newCode = genSyncCode();
-      state.syncCode = newCode;
-      await cloudPush();
-      alert(`Your sync code is: ${newCode}\n\nEnter this same code on your other phone to link them. You can always find it again under "🔗 Sync Code" in the menu.`);
-    }
-
-    btn.textContent = 'Create My System 🌷';
-    btn.disabled = false;
     saveState();
+    document.getElementById('nameEntry').classList.add('hidden');
+    document.getElementById('returningEntry').classList.remove('hidden');
     renderGreeting();
   });
   document.getElementById('nameInput').addEventListener('keydown', e=>{
@@ -1750,26 +1810,13 @@ function wireEvents(){
     renderFinance();
   });
 
-  document.getElementById('syncBtn').addEventListener('click', async ()=>{
-    const current = state.syncCode || '(none set — this phone is local-only)';
-    const input = prompt(`Your current sync code:\n\n${current}\n\nTo link this phone with another, paste that phone's code below. Leave unchanged to keep the current one.`, state.syncCode || '');
-    if(input===null) return;
-    const newCode = input.trim().toUpperCase();
-    if(!newCode || newCode===state.syncCode) return;
-    const proceed = confirm('This will replace the data on this phone with whatever is saved under that sync code. Continue?');
+  document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+    const proceed = confirm("Log out of this account on this device? You'll need your email and password to log back in.");
     if(!proceed) return;
-    state.syncCode = newCode;
-    const cloudData = await cloudPull(newCode);
-    if(cloudData){
-      state = {...state, ...cloudData, syncCode: newCode};
-      saveState();
-      rerenderAll();
-      alert('Linked and loaded 🌸');
-    } else {
-      await cloudPush();
-      saveState();
-      alert(`No existing data under that code yet — this phone's current data is now saved there. Code: ${newCode}`);
-    }
+    await sb.auth.signOut();
+    currentUserId = null;
+    localStorage.removeItem('systemData');
+    location.reload();
   });
 
   document.getElementById('exportBtn').addEventListener('click', ()=>{
@@ -1807,8 +1854,7 @@ function wireEvents(){
           budget: parsed.budget || {categories:[]},
           savings: parsed.savings || {goals:[]},
           transactions: parsed.transactions || [],
-          events: parsed.events || [],
-          syncCode: parsed.syncCode || state.syncCode || null
+          events: parsed.events || []
         };
         saveState();
         renderGreeting(); renderHome(); renderHabits(); renderPrayers(); renderFinance();
@@ -1895,23 +1941,38 @@ function wireEvents(){
 
 /* ================= INIT ================= */
 (async function init(){
-  await loadState();
-  processMissedHabits();
+  loadLocalCache();
   renderHabitDaysChips();
-  renderGreeting();
   wireEvents();
   setupNotifButton();
   const txDateEl = document.getElementById('txDate');
   if(txDateEl) txDateEl.value = todayStr();
+
+  const now = new Date();
+  document.getElementById('greetDate').textContent = now.toLocaleDateString(undefined,{weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+  try{
+    const { data: { session } } = await sb.auth.getSession();
+    if(session){
+      await afterAuthSuccess(session);
+      processMissedHabits();
+    } else {
+      document.getElementById('authEntry').classList.remove('hidden');
+    }
+  }catch(e){
+    console.error('session check failed', e);
+    document.getElementById('authEntry').classList.remove('hidden');
+  }
+
   setInterval(checkReminders, 20000);
   setInterval(async ()=>{
-    if(!state.syncCode || cloudSyncing) return;
+    if(!currentUserId || cloudSyncing) return;
     if(document.getElementById('mainScreen').classList.contains('hidden')) return;
     cloudSyncing = true;
-    const cloudData = await cloudPull(state.syncCode);
+    const cloudData = await cloudPull();
     cloudSyncing = false;
     if(cloudData && JSON.stringify(cloudData) !== JSON.stringify(state)){
-      state = {...state, ...cloudData, syncCode: state.syncCode};
+      state = {...state, ...cloudData};
       try{ localStorage.setItem('systemData', JSON.stringify(state)); }catch(e){}
       rerenderAll();
     }
