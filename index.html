@@ -458,6 +458,9 @@ input, select{font-family:inherit;}
 .today-list{display:flex; flex-direction:column; gap:8px; flex:1; min-width:220px;}
 .today-item{display:flex; align-items:center; gap:8px; font-size:13.5px; padding:8px 10px; background:var(--blush-bg); border-radius:10px;}
 .today-item.ok{opacity:.55; text-decoration:line-through;}
+.today-item.clickable{cursor:pointer; transition:.15s;}
+.today-item.clickable:hover{background:var(--rose-light);}
+.today-item.clickable:active{transform:scale(0.98);}
 
 @media (max-width: 800px){
   #mainScreen{flex-direction:column;}
@@ -635,6 +638,7 @@ input, select{font-family:inherit;}
               <input type="time" id="habitTime" value="08:00">
             </div>
             <button class="btn-sm" id="addHabitBtn" style="width:100%;">Add Habit</button>
+            <button class="btn-outline hidden" id="cancelEditBtn" style="width:100%; margin-top:8px;">Cancel Edit</button>
           </div>
           <div class="card">
             <div class="section-title">📋 Your Habits</div>
@@ -1103,7 +1107,7 @@ function renderHome(){
   todayList.innerHTML = '';
   dueHabits.forEach(h=>{
     const ok = h.completedDates.includes(today);
-    todayList.innerHTML += `<div class="today-item ${ok?'ok':''}">${ok?'✅':'⭕'} ${h.name} <span style="margin-left:auto; color:var(--plum-soft); font-size:11px;">${fmtTime(h.time)}</span></div>`;
+    todayList.innerHTML += `<div class="today-item clickable ${ok?'ok':''}" data-hometoggle="${h.id}">${ok?'✅':'⭕'} ${h.name} <span style="margin-left:auto; color:var(--plum-soft); font-size:11px;">${fmtTime(h.time)}</span></div>`;
   });
   PRAYERS.forEach(p=>{
     const ok = prayerDone.includes(p.key);
@@ -1112,12 +1116,18 @@ function renderHome(){
   if(!dueHabits.length && !PRAYERS.length){
     todayList.innerHTML = '<div class="empty-state">Nothing scheduled — add a habit to get started 🌱</div>';
   }
+  todayList.querySelectorAll('[data-hometoggle]').forEach(el=>{
+    el.addEventListener('click', ()=> toggleHabitToday(el.dataset.hometoggle));
+  });
 
   const hs = document.getElementById('homeHabitSummary');
   hs.innerHTML = dueHabits.length ? '' : '<div class="empty-state">No habits due today</div>';
   dueHabits.forEach(h=>{
     const ok = h.completedDates.includes(today);
-    hs.innerHTML += `<div class="today-item ${ok?'ok':''}">${ok?'✅':'⭕'} ${h.name}</div>`;
+    hs.innerHTML += `<div class="today-item clickable ${ok?'ok':''}" data-hometoggle2="${h.id}">${ok?'✅':'⭕'} ${h.name}</div>`;
+  });
+  hs.querySelectorAll('[data-hometoggle2]').forEach(el=>{
+    el.addEventListener('click', ()=> toggleHabitToday(el.dataset.hometoggle2));
   });
 
   const ps = document.getElementById('homePrayerSummary');
@@ -1126,6 +1136,20 @@ function renderHome(){
     const ok = prayerDone.includes(p.key);
     ps.innerHTML += `<div class="today-item ${ok?'ok':''}">${ok?'✅':'⭕'} ${p.emoji} ${p.key}</div>`;
   });
+}
+
+function toggleHabitToday(habitId){
+  const h = state.habits.find(x=>x.id===habitId);
+  if(!h) return;
+  const t = todayStr();
+  if(h.completedDates.includes(t)){
+    h.completedDates = h.completedDates.filter(d=>d!==t);
+    h.streak = Math.max(0, h.streak-1);
+  } else {
+    h.completedDates.push(t);
+    h.streak = (h.streak||0)+1;
+  }
+  saveState(); renderHabits(); renderHome();
 }
 
 /* ================= RENDER: HABITS ================= */
@@ -1158,30 +1182,54 @@ function renderHabits(){
           ${h.streak>0?`<span class="streak-badge">🔥 ${h.streak}</span>`:''}
           ${h.missedCount>0?`<span class="miss-badge">⚠ ${h.missedCount} missed</span>`:''}
           <button class="check-btn ${done?'checked':''}" data-id="${h.id}" title="Mark done today">${done?'✓':'○'}</button>
+          <button class="btn-outline" data-edit="${h.id}" style="padding:6px 10px; font-size:11px;">✏️ Edit</button>
           <button class="btn-danger" data-del="${h.id}">Remove</button>
         </div>
       </div>`;
   });
   list.querySelectorAll('.check-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const h = state.habits.find(x=>x.id===btn.dataset.id);
-      const t = todayStr();
-      if(h.completedDates.includes(t)){
-        h.completedDates = h.completedDates.filter(d=>d!==t);
-        h.streak = Math.max(0, h.streak-1);
-      } else {
-        h.completedDates.push(t);
-        h.streak = (h.streak||0)+1;
-      }
-      saveState(); renderHabits(); renderHome();
-    });
+    btn.addEventListener('click', ()=> toggleHabitToday(btn.dataset.id));
+  });
+  list.querySelectorAll('[data-edit]').forEach(btn=>{
+    btn.addEventListener('click', ()=> startEditHabit(btn.dataset.edit));
   });
   list.querySelectorAll('[data-del]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
+      if(editingHabitId===btn.dataset.del) cancelEditHabit();
       state.habits = state.habits.filter(x=>x.id!==btn.dataset.del);
       saveState(); renderHabits(); renderHome();
     });
   });
+}
+
+let editingHabitId = null;
+
+function startEditHabit(habitId){
+  const h = state.habits.find(x=>x.id===habitId);
+  if(!h) return;
+  editingHabitId = habitId;
+  document.getElementById('habitName').value = h.name;
+  document.getElementById('habitFreq').value = h.frequency;
+  document.getElementById('habitTime').value = h.time;
+  document.getElementById('habitDaysField').classList.toggle('hidden', h.frequency!=='weekly');
+  document.querySelectorAll('#habitDaysChips .chip').forEach(chip=>{
+    chip.classList.toggle('selected', h.days && h.days.includes(chip.dataset.day));
+  });
+  document.getElementById('addHabitBtn').textContent = '💾 Save Changes';
+  document.getElementById('cancelEditBtn').classList.remove('hidden');
+  document.getElementById('habitName').scrollIntoView({behavior:'smooth', block:'center'});
+  document.getElementById('habitName').focus();
+}
+
+function cancelEditHabit(){
+  editingHabitId = null;
+  document.getElementById('habitName').value = '';
+  document.getElementById('habitFreq').value = 'daily';
+  document.getElementById('habitDaysField').classList.add('hidden');
+  document.getElementById('habitTime').value = '08:00';
+  document.querySelectorAll('#habitDaysChips .chip').forEach(chip=> chip.classList.remove('selected'));
+  document.getElementById('addHabitBtn').textContent = 'Add Habit';
+  document.getElementById('cancelEditBtn').classList.add('hidden');
 }
 
 /* ================= RENDER: PRAYERS ================= */
@@ -1801,14 +1849,21 @@ function wireEvents(){
       days = [...document.querySelectorAll('#habitDaysChips .chip.selected')].map(c=>c.dataset.day);
       if(!days.length){ alert('Please choose at least one day.'); return; }
     }
-    state.habits.push({
-      id: uid(), name, frequency: freq, days, time,
-      streak: 0, missedCount: 0, completedDates: []
-    });
+    if(editingHabitId){
+      const h = state.habits.find(x=>x.id===editingHabitId);
+      if(h){ h.name = name; h.frequency = freq; h.days = days; h.time = time; }
+      cancelEditHabit();
+    } else {
+      state.habits.push({
+        id: uid(), name, frequency: freq, days, time,
+        streak: 0, missedCount: 0, completedDates: []
+      });
+      document.getElementById('habitName').value='';
+    }
     saveState();
-    document.getElementById('habitName').value='';
     renderHabits(); renderHome();
   });
+  document.getElementById('cancelEditBtn').addEventListener('click', cancelEditHabit);
 
   document.getElementById('addCatBtn').addEventListener('click', ()=>{
     const name = document.getElementById('catName').value.trim();
