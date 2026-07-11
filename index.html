@@ -492,6 +492,10 @@ input, select{font-family:inherit;}
           <label>What's your name?</label>
           <input type="text" id="nameInput" placeholder="e.g. Amina">
         </div>
+        <div class="name-input-wrap">
+          <label>Sync code (optional)</label>
+          <input type="text" id="syncCodeInput" placeholder="Leave blank to create one, or paste one from your other phone">
+        </div>
         <button class="btn-primary" id="saveNameBtn">Create My System 🌷</button>
       </div>
       <div id="returningEntry" class="hidden">
@@ -514,6 +518,7 @@ input, select{font-family:inherit;}
       <button class="nav-btn" data-page="finance">💰 Finance</button>
       <div class="sidebar-foot">
         <button class="notif-btn" id="notifBtn">🔔 Enable Reminders</button>
+        <button class="btn-outline" id="syncBtn" style="width:100%; margin-top:8px;">🔗 Sync Code</button>
         <button class="btn-outline" id="exportBtn" style="width:100%; margin-top:8px;">⬇️ Export Data</button>
         <button class="btn-outline" id="importBtn" style="width:100%; margin-top:8px;">⬆️ Import Data</button>
         <input type="file" id="importFile" accept="application/json" class="hidden">
@@ -842,7 +847,12 @@ const QUOTES = [
 ];
 
 /* ================= STATE ================= */
+const SUPABASE_URL = 'https://izdqsoicbbpecmkwcjvg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml6ZHFzb2ljYmJwZWNta3djanZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3Njc0NjAsImV4cCI6MjA5OTM0MzQ2MH0.oqzSQNEFZDkWxSxZi00LjHDNqdd1heEjHZxPJBNXd6E';
+const SUPABASE_TABLE_URL = SUPABASE_URL + '/rest/v1/app_sync';
+
 let state = {
+  syncCode: null,
   profile: {name:''},
   habits: [],
   habitMeta: {lastChecked: null},
@@ -854,6 +864,49 @@ let state = {
   events: []
 };
 let notifiedKeys = new Set();
+let cloudSyncing = false;
+
+function genSyncCode(){
+  if(window.crypto && crypto.randomUUID) return crypto.randomUUID().slice(0,8).toUpperCase();
+  return Math.random().toString(36).slice(2,10).toUpperCase();
+}
+
+async function cloudPush(){
+  if(!state.syncCode) return;
+  try{
+    await fetch(SUPABASE_TABLE_URL, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify([{ sync_code: state.syncCode, data: state, updated_at: new Date().toISOString() }])
+    });
+  }catch(e){ console.error('cloud push failed', e); }
+}
+
+async function cloudPull(code){
+  try{
+    const res = await fetch(`${SUPABASE_TABLE_URL}?sync_code=eq.${encodeURIComponent(code)}&select=data`, {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+      }
+    });
+    if(!res.ok) return null;
+    const rows = await res.json();
+    if(rows && rows.length && rows[0].data) return rows[0].data;
+    return null;
+  }catch(e){ console.error('cloud pull failed', e); return null; }
+}
+
+function rerenderAll(){
+  if(document.getElementById('mainScreen').classList.contains('hidden')) return;
+  renderHome(); renderHabits(); renderPrayers(); renderFinance();
+  if(calViewMode==='week') renderWeekView(); else renderCalendar();
+}
 
 function todayStr(){
   const d = new Date();
@@ -908,6 +961,14 @@ async function loadState(){
       state = {...state, ...parsed};
     }
   }catch(e){ console.error('load failed', e); }
+
+  if(state.syncCode){
+    const cloudData = await cloudPull(state.syncCode);
+    if(cloudData){
+      state = {...state, ...cloudData, syncCode: state.syncCode};
+      try{ localStorage.setItem('systemData', JSON.stringify(state)); }catch(e){}
+    }
+  }
 }
 let saveTimer = null;
 function saveState(){
@@ -915,6 +976,7 @@ function saveState(){
   saveTimer = setTimeout(()=>{
     try{ localStorage.setItem('systemData', JSON.stringify(state)); }
     catch(e){ console.error('save failed', e); alert('Could not save — your device storage may be full.'); }
+    cloudPush();
   }, 150);
 }
 
@@ -1606,6 +1668,31 @@ function wireEvents(){
     const val = document.getElementById('nameInput').value.trim();
     if(!val){ document.getElementById('nameInput').focus(); return; }
     state.profile.name = val;
+
+    const pastedCode = document.getElementById('syncCodeInput').value.trim().toUpperCase();
+    const btn = document.getElementById('saveNameBtn');
+    btn.textContent = 'Setting up…';
+    btn.disabled = true;
+
+    if(pastedCode){
+      state.syncCode = pastedCode;
+      const cloudData = await cloudPull(pastedCode);
+      if(cloudData){
+        state = {...state, ...cloudData, syncCode: pastedCode};
+        alert('Linked! Your existing data from your other phone has been loaded 🌸');
+      } else {
+        await cloudPush();
+        alert(`No existing data found for that code — this phone is now the starting point. Code: ${pastedCode}`);
+      }
+    } else {
+      const newCode = genSyncCode();
+      state.syncCode = newCode;
+      await cloudPush();
+      alert(`Your sync code is: ${newCode}\n\nEnter this same code on your other phone to link them. You can always find it again under "🔗 Sync Code" in the menu.`);
+    }
+
+    btn.textContent = 'Create My System 🌷';
+    btn.disabled = false;
     saveState();
     renderGreeting();
   });
@@ -1663,6 +1750,28 @@ function wireEvents(){
     renderFinance();
   });
 
+  document.getElementById('syncBtn').addEventListener('click', async ()=>{
+    const current = state.syncCode || '(none set — this phone is local-only)';
+    const input = prompt(`Your current sync code:\n\n${current}\n\nTo link this phone with another, paste that phone's code below. Leave unchanged to keep the current one.`, state.syncCode || '');
+    if(input===null) return;
+    const newCode = input.trim().toUpperCase();
+    if(!newCode || newCode===state.syncCode) return;
+    const proceed = confirm('This will replace the data on this phone with whatever is saved under that sync code. Continue?');
+    if(!proceed) return;
+    state.syncCode = newCode;
+    const cloudData = await cloudPull(newCode);
+    if(cloudData){
+      state = {...state, ...cloudData, syncCode: newCode};
+      saveState();
+      rerenderAll();
+      alert('Linked and loaded 🌸');
+    } else {
+      await cloudPush();
+      saveState();
+      alert(`No existing data under that code yet — this phone's current data is now saved there. Code: ${newCode}`);
+    }
+  });
+
   document.getElementById('exportBtn').addEventListener('click', ()=>{
     const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
@@ -1698,7 +1807,8 @@ function wireEvents(){
           budget: parsed.budget || {categories:[]},
           savings: parsed.savings || {goals:[]},
           transactions: parsed.transactions || [],
-          events: parsed.events || []
+          events: parsed.events || [],
+          syncCode: parsed.syncCode || state.syncCode || null
         };
         saveState();
         renderGreeting(); renderHome(); renderHabits(); renderPrayers(); renderFinance();
@@ -1794,6 +1904,18 @@ function wireEvents(){
   const txDateEl = document.getElementById('txDate');
   if(txDateEl) txDateEl.value = todayStr();
   setInterval(checkReminders, 20000);
+  setInterval(async ()=>{
+    if(!state.syncCode || cloudSyncing) return;
+    if(document.getElementById('mainScreen').classList.contains('hidden')) return;
+    cloudSyncing = true;
+    const cloudData = await cloudPull(state.syncCode);
+    cloudSyncing = false;
+    if(cloudData && JSON.stringify(cloudData) !== JSON.stringify(state)){
+      state = {...state, ...cloudData, syncCode: state.syncCode};
+      try{ localStorage.setItem('systemData', JSON.stringify(state)); }catch(e){}
+      rerenderAll();
+    }
+  }, 45000);
 })();
 </script>
 </body>
