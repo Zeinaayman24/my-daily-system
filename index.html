@@ -366,7 +366,49 @@ input, select{font-family:inherit;}
 @media (max-width:800px){
   .cal-grid-2{grid-template-columns:1fr !important;}
   .cal-day{font-size:11px;}
+  .week-scroll{overflow-x:auto;}
+  .week-grid{min-width:640px;}
+  .week-alldays{min-width:640px; overflow-x:auto;}
 }
+.cal-tabs{display:flex; gap:6px;}
+.cal-tab{
+  padding:9px 16px; border-radius:12px; font-size:13px; font-weight:700;
+  background:#fff; border:1.5px solid var(--line); color:var(--plum-soft);
+}
+.cal-tab.active{background: linear-gradient(135deg, var(--rose-light), var(--gold-light)); border-color:var(--rose); color:var(--rose-dark);}
+.cal-legend{display:flex; gap:16px; justify-content:center; margin-top:14px; font-size:12px; color:var(--plum-soft); font-weight:600;}
+.cal-legend span{display:flex; align-items:center; gap:5px;}
+.cal-legend .cal-dot{width:9px; height:9px;}
+.cal-dot.prayer{background:var(--sage);}
+
+.week-alldays{display:grid; grid-template-columns:50px repeat(7,1fr); gap:2px; margin-bottom:6px;}
+.week-alldays .wk-gutter{}
+.week-allday-cell{min-height:20px; display:flex; flex-direction:column; gap:2px;}
+.week-allday-pill{
+  font-size:10px; font-weight:700; padding:2px 5px; border-radius:6px; color:#fff; background:var(--gold);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.week-scroll{max-height:520px; overflow-y:auto; border-top:1px solid var(--line);}
+.week-grid{display:flex; flex-direction:column;}
+.week-header-row{display:grid; grid-template-columns:50px repeat(7,1fr); position:sticky; top:0; background:#fff; z-index:2; border-bottom:1px solid var(--line);}
+.week-day-header{text-align:center; padding:8px 2px; font-size:11px; font-weight:700; color:var(--plum-soft); border-left:1px solid var(--line);}
+.week-day-header.today .wk-daynum{background:var(--rose); color:#fff;}
+.week-day-header .wk-dayname{text-transform:uppercase; letter-spacing:.4px; font-size:9.5px;}
+.wk-daynum{display:inline-block; width:20px; height:20px; line-height:20px; border-radius:50%; font-size:12px; margin-top:2px;}
+.week-body{display:flex; position:relative;}
+.week-gutter-col{width:50px; flex-shrink:0;}
+.week-hour-label{height:44px; font-size:10px; color:var(--plum-soft); text-align:right; padding-right:6px; transform:translateY(-6px); box-sizing:border-box;}
+.week-day-col{flex:1; position:relative; border-left:1px solid var(--line); min-width:0;}
+.week-hour-line{height:44px; border-bottom:1px solid var(--blush-bg); box-sizing:border-box;}
+.week-item{
+  position:absolute; left:2px; right:2px; min-height:20px; border-radius:6px;
+  font-size:9.5px; font-weight:700; color:#fff; padding:2px 4px; overflow:hidden;
+  line-height:1.25; cursor:default; box-shadow:0 2px 6px -2px rgba(71,36,57,0.35);
+}
+.week-item.habit{background:var(--rose);}
+.week-item.event{background:var(--gold);}
+.week-item.prayer{background:var(--sage);}
+.week-item.done{opacity:0.45;}
 
 /* finance */
 .cat-block{padding:12px 0; border-bottom:1px dashed var(--line);}
@@ -564,27 +606,57 @@ input, select{font-family:inherit;}
         <div class="page-head">
           <div>
             <div class="page-title">📅 Calendar</div>
-            <div class="page-sub">See your habits laid out by day, and add one-off events.</div>
+            <div class="page-sub">Your habits, prayers, and events laid out by time.</div>
+          </div>
+          <div class="cal-tabs">
+            <button class="cal-tab active" data-calview="week">📆 Week</button>
+            <button class="cal-tab" data-calview="month">🗓️ Month</button>
           </div>
         </div>
+
         <div class="grid-2 cal-grid-2">
-          <div class="card">
-            <div class="cal-nav">
-              <button class="btn-outline" id="calPrevBtn">←</button>
-              <div class="cal-month-label" id="calMonthLabel">—</div>
-              <button class="btn-outline" id="calNextBtn">→</button>
+          <div>
+            <!-- WEEK VIEW -->
+            <div class="card" id="calWeekCard">
+              <div class="cal-nav">
+                <button class="btn-outline" id="calWeekPrevBtn">←</button>
+                <div class="cal-month-label" id="calWeekLabel">—</div>
+                <button class="btn-outline" id="calWeekNextBtn">→</button>
+              </div>
+              <div class="week-alldays" id="weekAllDay"></div>
+              <div class="week-scroll" id="weekScroll">
+                <div class="week-grid" id="weekGrid"></div>
+              </div>
+              <button class="btn-outline" id="calWeekTodayBtn" style="width:100%; margin-top:14px;">📍 Jump to Today</button>
+              <div class="cal-legend">
+                <span><span class="cal-dot habit"></span> Habit</span>
+                <span><span class="cal-dot event"></span> Event</span>
+                <span><span class="cal-dot prayer"></span> Prayer</span>
+              </div>
             </div>
-            <div class="cal-weekdays">
-              <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+
+            <!-- MONTH VIEW -->
+            <div class="card hidden" id="calMonthCard">
+              <div class="cal-nav">
+                <button class="btn-outline" id="calPrevBtn">←</button>
+                <div class="cal-month-label" id="calMonthLabel">—</div>
+                <button class="btn-outline" id="calNextBtn">→</button>
+              </div>
+              <div class="cal-weekdays">
+                <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+              </div>
+              <div class="cal-grid" id="calGrid"></div>
+              <button class="btn-outline" id="calTodayBtn" style="width:100%; margin-top:14px;">📍 Jump to Today</button>
             </div>
-            <div class="cal-grid" id="calGrid"></div>
-            <button class="btn-outline" id="calTodayBtn" style="width:100%; margin-top:14px;">📍 Jump to Today</button>
           </div>
 
           <div class="card">
             <div class="section-title" id="calSelectedLabel">📌 Select a day</div>
 
             <div id="calHabitsList" class="item-list" style="margin-bottom:18px;"></div>
+
+            <div class="section-title" style="font-size:14.5px;">🕌 Prayers</div>
+            <div id="calPrayersList" class="item-list" style="margin-bottom:18px;"></div>
 
             <div class="section-title" style="font-size:14.5px;">✨ Events</div>
             <div id="calEventsList" class="item-list" style="margin-bottom:14px;"></div>
@@ -595,7 +667,7 @@ input, select{font-family:inherit;}
             </div>
             <div class="field-row">
               <div class="field">
-                <label>Time (optional)</label>
+                <label>Time (leave blank for all-day)</label>
                 <input type="time" id="calEventTime">
               </div>
               <div class="field">
@@ -1276,17 +1348,135 @@ function renderSavings(){
 
 /* ================= NAV ================= */
 /* ================= CALENDAR ================= */
+const HOUR_H = 44;
+let calViewMode = 'week';
 let calViewDate = new Date();
 let calSelectedDate = todayStr();
+let calWeekStart = startOfWeek(new Date());
 
+function startOfWeek(d){
+  const c = new Date(d);
+  c.setHours(0,0,0,0);
+  c.setDate(c.getDate() - c.getDay());
+  return c;
+}
 function dstr(y,m,d){
   return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+}
+function dstrFromDate(d){
+  return dstr(d.getFullYear(), d.getMonth(), d.getDate());
 }
 function eventsOnDate(dateStr){
   return state.events.filter(e=>e.date===dateStr);
 }
 function habitsDueOnDate(dateStr){
   return state.habits.filter(h=>isHabitDue(h, dateStr));
+}
+function timeToMinutes(t){
+  if(!t) return null;
+  const [h,m] = t.split(':').map(Number);
+  return h*60+m;
+}
+
+function switchCalView(mode){
+  calViewMode = mode;
+  document.querySelectorAll('.cal-tab').forEach(t=> t.classList.toggle('active', t.dataset.calview===mode));
+  document.getElementById('calWeekCard').classList.toggle('hidden', mode!=='week');
+  document.getElementById('calMonthCard').classList.toggle('hidden', mode!=='month');
+  if(mode==='week') renderWeekView(); else renderCalendar();
+}
+
+function renderWeekView(){
+  const start = calWeekStart;
+  const days = [];
+  for(let i=0;i<7;i++){
+    const d = new Date(start);
+    d.setDate(start.getDate()+i);
+    days.push(d);
+  }
+  const end = days[6];
+  const label = `${start.toLocaleDateString(undefined,{month:'short', day:'numeric'})} – ${end.toLocaleDateString(undefined,{month:'short', day:'numeric', year:'numeric'})}`;
+  document.getElementById('calWeekLabel').textContent = label;
+
+  const today = todayStr();
+  const DAY_NAMES_SHORT = DAY_NAMES;
+
+  // header row
+  let headerHtml = `<div class="week-header-row"><div class="wk-gutter"></div>`;
+  days.forEach(d=>{
+    const ds = dstrFromDate(d);
+    const isToday = ds===today;
+    headerHtml += `<div class="week-day-header ${isToday?'today':''}" data-date="${ds}">
+        <div class="wk-dayname">${DAY_NAMES_SHORT[d.getDay()]}</div>
+        <div class="wk-daynum">${d.getDate()}</div>
+      </div>`;
+  });
+  headerHtml += `</div>`;
+
+  // all-day row (untimed events)
+  let allDayHtml = `<div class="wk-gutter"></div>`;
+  days.forEach(d=>{
+    const ds = dstrFromDate(d);
+    const untimed = eventsOnDate(ds).filter(e=>!e.time);
+    allDayHtml += `<div class="week-allday-cell">` +
+      untimed.map(e=>`<div class="week-allday-pill" title="${e.title}">${e.title}</div>`).join('') +
+      `</div>`;
+  });
+  document.getElementById('weekAllDay').innerHTML = allDayHtml;
+
+  // hour body
+  let bodyHtml = `<div class="week-body"><div class="week-gutter-col">`;
+  for(let h=0; h<24; h++){
+    bodyHtml += `<div class="week-hour-label">${fmtTime(String(h).padStart(2,'0')+':00')}</div>`;
+  }
+  bodyHtml += `</div>`;
+
+  days.forEach(d=>{
+    const ds = dstrFromDate(d);
+    let items = [];
+    habitsDueOnDate(ds).forEach(h=>{
+      items.push({type:'habit', label:h.name, time:h.time, done: h.completedDates.includes(ds)});
+    });
+    eventsOnDate(ds).filter(e=>e.time).forEach(e=>{
+      items.push({type:'event', label:e.title, time:e.time, done:false});
+    });
+    PRAYERS.forEach(p=>{
+      const t = state.prayerTimes[p.key];
+      const done = (state.prayerLog[ds]||[]).includes(p.key);
+      items.push({type:'prayer', label:p.emoji+' '+p.key, time:t, done});
+    });
+
+    let colHtml = `<div class="week-day-col" data-date="${ds}">`;
+    for(let h=0;h<24;h++){ colHtml += `<div class="week-hour-line"></div>`; }
+    items.forEach(it=>{
+      const mins = timeToMinutes(it.time);
+      if(mins===null) return;
+      const top = (mins/60)*HOUR_H;
+      colHtml += `<div class="week-item ${it.type} ${it.done?'done':''}" style="top:${top}px; height:${Math.max(HOUR_H*0.55,18)}px;" title="${it.label} · ${fmtTime(it.time)}">${it.label}</div>`;
+    });
+    colHtml += `</div>`;
+    bodyHtml += colHtml;
+  });
+  bodyHtml += `</div>`;
+
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = headerHtml + bodyHtml;
+
+  grid.querySelectorAll('.week-day-header[data-date], .week-day-col[data-date]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      calSelectedDate = el.dataset.date;
+      renderCalSelectedDay();
+    });
+  });
+
+  // auto-scroll to ~6am on first render of a session
+  const scrollBox = document.getElementById('weekScroll');
+  if(scrollBox && !scrollBox.dataset.scrolled){
+    scrollBox.scrollTop = 6*HOUR_H;
+    scrollBox.dataset.scrolled = '1';
+  }
+
+  renderCalSelectedDay();
 }
 
 function renderCalendar(){
@@ -1368,8 +1558,19 @@ function renderCalSelectedDay(){
       } else {
         h.completedDates.push(dateStr);
       }
-      saveState(); renderCalSelectedDay(); renderCalendar(); renderHome();
+      saveState(); renderCalSelectedDay(); renderCalendar(); renderWeekView(); renderHome();
     });
+  });
+
+  const prayersList = document.getElementById('calPrayersList');
+  const prayedToday = state.prayerLog[dateStr] || [];
+  prayersList.innerHTML = '';
+  PRAYERS.forEach(p=>{
+    const done = prayedToday.includes(p.key);
+    prayersList.innerHTML += `
+      <div class="cal-item ${done?'done':''}">
+        <span class="cal-item-left">${done?'✅':'⭕'} ${p.emoji} ${p.key} <span style="color:var(--plum-soft); font-size:11px;">${fmtTime(state.prayerTimes[p.key])}</span></span>
+      </div>`;
   });
 
   const events = eventsOnDate(dateStr).sort((a,b)=> (a.time||'').localeCompare(b.time||''));
@@ -1378,14 +1579,14 @@ function renderCalSelectedDay(){
   events.forEach(ev=>{
     eventsList.innerHTML += `
       <div class="cal-item">
-        <span class="cal-item-left">✨ ${ev.title}${ev.time? ' · '+fmtTime(ev.time):''}${ev.note? ' — '+ev.note:''}</span>
+        <span class="cal-item-left">✨ ${ev.title}${ev.time? ' · '+fmtTime(ev.time):' · all day'}${ev.note? ' — '+ev.note:''}</span>
         <button class="btn-danger" data-evdel="${ev.id}">✕</button>
       </div>`;
   });
   eventsList.querySelectorAll('[data-evdel]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       state.events = state.events.filter(e=>e.id!==btn.dataset.evdel);
-      saveState(); renderCalSelectedDay(); renderCalendar();
+      saveState(); renderCalSelectedDay(); renderCalendar(); renderWeekView();
     });
   });
 }
@@ -1394,7 +1595,9 @@ function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.page===name));
-  if(name==='calendar') renderCalendar();
+  if(name==='calendar'){
+    if(calViewMode==='week') renderWeekView(); else renderCalendar();
+  }
 }
 
 /* ================= EVENT WIRING ================= */
@@ -1547,6 +1750,25 @@ function wireEvents(){
     calSelectedDate = todayStr();
     renderCalendar();
   });
+  document.getElementById('calWeekPrevBtn').addEventListener('click', ()=>{
+    calWeekStart.setDate(calWeekStart.getDate()-7);
+    renderWeekView();
+  });
+  document.getElementById('calWeekNextBtn').addEventListener('click', ()=>{
+    calWeekStart.setDate(calWeekStart.getDate()+7);
+    renderWeekView();
+  });
+  document.getElementById('calWeekTodayBtn').addEventListener('click', ()=>{
+    calWeekStart = startOfWeek(new Date());
+    calSelectedDate = todayStr();
+    const scrollBox = document.getElementById('weekScroll');
+    if(scrollBox) delete scrollBox.dataset.scrolled;
+    renderWeekView();
+    renderCalSelectedDay();
+  });
+  document.querySelectorAll('.cal-tab').forEach(tab=>{
+    tab.addEventListener('click', ()=> switchCalView(tab.dataset.calview));
+  });
   document.getElementById('addCalEventBtn').addEventListener('click', ()=>{
     const title = document.getElementById('calEventTitle').value.trim();
     const time = document.getElementById('calEventTime').value;
@@ -1557,7 +1779,7 @@ function wireEvents(){
     document.getElementById('calEventTitle').value='';
     document.getElementById('calEventTime').value='';
     document.getElementById('calEventNote').value='';
-    renderCalSelectedDay(); renderCalendar();
+    renderCalSelectedDay(); renderCalendar(); renderWeekView();
   });
 }
 
